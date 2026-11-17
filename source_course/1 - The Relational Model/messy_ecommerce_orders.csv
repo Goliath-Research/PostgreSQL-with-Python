@@ -1,0 +1,8 @@
+row_id,order_id,ordered_at,order_status,customer_email,customer_name,shipping_address,warehouse_code,warehouse_city,sku,product_name,category,unit_price,quantity
+1,ORD-1001,2026-10-01 09:14:00,SHIPPED,elena.rostova@example.com,Elena Rostova,"742 Evergreen Terrace, Winter Haven, FL 33881",WH-FL01,"Winter Haven, FL",SKU-NVME-2TB,2TB PCIe Gen4 NVMe SSD,Storage,149.99,2
+2,ORD-1001,2026-10-01 09:14:00,SHIPPED,elena.rostova@example.com,Elena Rostova,"742 Evergreen Terrace, Winter Haven, FL 33881",WH-FL01,"Winter Haven, FL",SKU-USB4-HUB,USB4 40Gbps Dock,Accessories,89.50,1
+3,ORD-1002,2026-10-03 14:22:00,DELIVERED,mvance@example.org,Marcus Vance,"1901 N Tryon St, Charlotte, NC 28206",WH-NC01,"Charlotte, NC",SKU-NVME-2TB,2TB PCIe Gen4 NVMe SSD,Storage,149.99,1
+4,ORD-1003,2026-10-10 11:05:00,PAID,elena.rostova@example.com,Elena Rostova,"742 Evergreen Ter, Winter Haven, FL 33881",WH-FL01,"Winter Haven, FL",SKU-NVME-2TB,2TB PCIe Gen4 NVMe SSD,Storage,139.99,4
+5,ORD-1004,2026-10-12 16:40:00,PENDING,d.chen@example.net,David Chen,"880 Market St, San Francisco, CA 94102",WH-CA01,"San Francisco, CA",SKU-THERM-PASTE,High-Conductivity Thermal Paste 4g,Cooling,12.99,3
+6,ORD-1005,2026-10-15 08:50:00,SHIPPED,mvance@example.org,Marcus Vance,"1901 N Tryon St, Charlotte, NC 28206",WH-NC01,"Charlotte, NC",SKU-USB4-HUB,USB4 40Gbps Dock,Accessories,89.50,2
+7,,,,,,,WH-FL01,"Winter Haven, FL",SKU-GPU-BRACKET,CNC Aluminum GPU Support Bracket,Components,24.00,0
