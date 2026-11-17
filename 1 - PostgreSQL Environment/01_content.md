@@ -53,7 +53,7 @@ Marimo / Python ──► Psycopg 3 / DuckDB / SQLAlchemy
                         │
                 Host + Port + Authentication
                         ▼
-               PostgreSQL Server (17.4)
+               PostgreSQL Server (18 / 19)
                         │
            Database (goliath_ecommerce)
               ├── Schema: commerce (Module 2 business tables)
@@ -64,8 +64,8 @@ Marimo / Python ──► Psycopg 3 / DuckDB / SQLAlchemy
 - **Why changing a connection string is not a migration:** Simply swapping `sqlite3.connect(...)` for `psycopg.connect(...)` does not create roles, configure schema ownership, enforce least-privilege access, or map SQLite dynamic typing (`typeof(...)`) to strict PostgreSQL native types (`TIMESTAMPTZ`, `NUMERIC`, identity columns).
 
 ### 1.2 Establish a reproducible laboratory
-The primary laboratory uses `compose.yaml` with `postgres:17.4-bookworm`:
-- **Pinned Image Version:** Uses `postgres:17.4-bookworm` rather than an unpinned `postgres:latest` tag so every student runs identical server behavior and catalog layouts.
+The primary laboratory uses `compose.yaml` with `postgres:18-bookworm` (and supports native PostgreSQL 18 / 19 installations):
+- **Pinned Image Version:** Uses `postgres:18-bookworm` rather than an unpinned `postgres:latest` tag so every student runs consistent server behavior and catalog layouts.
 - **Named Data Volume (`goliath_pgdata`):** Persists `/var/lib/postgresql/data` across container restarts.
 - **Localhost-Only Port Publishing:** `"127.0.0.1:${PG_HOST_PORT:-54329}:5432"` binds the host port exclusively to the loopback interface (`127.0.0.1`), preventing accidental exposure on local Wi-Fi or LAN networks.
 - **Health/Readiness Check:** Runs `pg_isready -U postgres -d goliath_ecommerce` so tools can distinguish "container started" from "PostgreSQL ready to accept connections."

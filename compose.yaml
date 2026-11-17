@@ -2,8 +2,8 @@ name: goliath-advanced-postgresql
 
 services:
   postgres:
-    # Pinned major.minor PostgreSQL version for reproducible behavior across labs
-    image: postgres:17.4-bookworm
+    # Pinned major PostgreSQL 18 image for reproducible behavior across labs (compatible with PostgreSQL 18/19)
+    image: postgres:18-bookworm
     container_name: goliath_pg_lab
     restart: unless-stopped
     environment:
