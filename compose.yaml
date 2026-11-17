@@ -1,0 +1,35 @@
+name: goliath-advanced-postgresql
+
+services:
+  postgres:
+    # Pinned major.minor PostgreSQL version for reproducible behavior across labs
+    image: postgres:17.4-bookworm
+    container_name: goliath_pg_lab
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lab_bootstrap_superuser_pw}
+      POSTGRES_DB: ${POSTGRES_DB:-goliath_ecommerce}
+      TZ: UTC
+      PGTZ: UTC
+    # Bind strictly to localhost (127.0.0.1) so the lab server is not exposed on LAN interfaces
+    ports:
+      - "127.0.0.1:${PG_HOST_PORT:-54329}:5432"
+    volumes:
+      - goliath_pgdata:/var/lib/postgresql/data
+      - ./bootstrap/01_roles_and_database.sql:/docker-entrypoint-initdb.d/01_roles_and_database.sql:ro
+      - ./bootstrap/02_schemas_and_probe.sql:/docker-entrypoint-initdb.d/02_schemas_and_probe.sql:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-goliath_ecommerce}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  goliath_pgdata:
+    name: goliath_pgdata

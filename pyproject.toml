@@ -1,0 +1,25 @@
+[project]
+name = "postgresql-with-python"
+version = "0.1.0"
+description = "PostgreSQL with Python: Analytics, ORM, and Database Applications — Goliath Research Academy"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+dependencies = [
+    "marimo>=0.11.0",
+    "psycopg[binary]>=3.2.0",
+    "duckdb>=1.2.0",
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14.0",
+    "pytest>=8.3.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "1 - PostgreSQL Environment",
+]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
