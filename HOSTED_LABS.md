@@ -21,10 +21,10 @@ access to an editor does **not** mean that Python executes in the browser.
           │
           │ authenticated, authorized session
           ▼
- ┌──────────────────────── Learner environment ────────────────────────┐
+ ┌──────────────────────── Learner environment ─────────────────────────┐
  │ Marimo server + native Python kernel                                 │
  │ Psycopg / course Python code                                         │
- │          │ private learner network                                  │
+ │          │ private learner network                                   │
  │          ▼                                                           │
  │ PostgreSQL service ───── private database storage                    │
  │ Real backend sessions, isolated from other learners                  │
