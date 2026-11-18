@@ -1,0 +1,16 @@
+{
+  "python.defaultInterpreterPath": "c:\\Work\\PostgreSQL-with-Python\\.venv\\Scripts\\python.exe",
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.extraPaths": [
+    "1 - PostgreSQL Environment",
+    "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL",
+    "3 - PostgreSQL SQL & Transactions",
+    "4 - DuckDB PostgreSQL Connection",
+    "5 - Pythonic Relational Analytics",
+    "6 - Analytical Reporting & Performance",
+    "7 - SQLAlchemy Core & Connections",
+    "8 - SQLAlchemy ORM Models",
+    "9 - Sessions & Transactional Services",
+    "10 - Migrations, Testing & Capstone"
+  ]
+}

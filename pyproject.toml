@@ -18,8 +18,43 @@ dependencies = [
 [tool.pytest.ini_options]
 testpaths = [
     "1 - PostgreSQL Environment",
+    "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL",
+    "3 - PostgreSQL SQL & Transactions",
+    "4 - DuckDB PostgreSQL Connection",
 ]
 python_files = ["test_*.py"]
+
+[tool.pyrefly]
+python-interpreter-path = ".venv/Scripts/python.exe"
+search-path = [
+    ".",
+    "1 - PostgreSQL Environment",
+    "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL",
+    "3 - PostgreSQL SQL & Transactions",
+    "4 - DuckDB PostgreSQL Connection",
+    "5 - Pythonic Relational Analytics",
+    "6 - Analytical Reporting & Performance",
+    "7 - SQLAlchemy Core & Connections",
+    "8 - SQLAlchemy ORM Models",
+    "9 - Sessions & Transactional Services",
+    "10 - Migrations, Testing & Capstone",
+]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+extraPaths = [
+    "1 - PostgreSQL Environment",
+    "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL",
+    "3 - PostgreSQL SQL & Transactions",
+    "4 - DuckDB PostgreSQL Connection",
+    "5 - Pythonic Relational Analytics",
+    "6 - Analytical Reporting & Performance",
+    "7 - SQLAlchemy Core & Connections",
+    "8 - SQLAlchemy ORM Models",
+    "9 - Sessions & Transactional Services",
+    "10 - Migrations, Testing & Capstone",
+]
 
 [tool.ruff]
 line-length = 100
