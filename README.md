@@ -1,4 +1,4 @@
-# PostgreSQL with Python: Analytics, ORM, and Database Applications
+# PostgreSQL with Python: Advanced Relational Databases
 **Hosted lab architecture and operator requirements:** [HOSTED_LABS.md](HOSTED_LABS.md) — current execution modes, security boundaries, and outstanding hosting work.
 
 **Institution:** Goliath Research Academy  
