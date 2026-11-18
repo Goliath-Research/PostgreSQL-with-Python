@@ -4,7 +4,7 @@
 
 **Institution:** Goliath Research Academy  
 **Delivery Format:** Interactive Marimo Reactive Notebooks (`.py`), Module Reference Guides (`*_content.md`), Reproducible PostgreSQL 18 Laboratory (`compose.yaml`), DuckDB 2.0, SQLAlchemy 2.0, and Automated Verification Suites  
-**Prerequisites:** Completion of *Introduction to Databases: Relational Foundations & Python Integration* (8-module SQLite course); Python 3.11+, SQL fundamentals, and basic terminal usage
+**Prerequisites:** Completion of [SQLite with Python: Relational Database Foundations](https://github.com/Goliath-Research/SQLite-with-Python) (8-module SQLite course); Python 3.11+, SQL fundamentals, and basic terminal usage.
 
 ---
 
