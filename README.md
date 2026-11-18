@@ -9,7 +9,7 @@
 
 ## 1. Course Overview & Architectural Philosophy
 
-Building directly on the normalized e-commerce domain from the introductory SQLite course, this 10-module advanced course establishes **PostgreSQL** as an authoritative client/server relational database accessed through two complementary Python interfaces separated by responsibility:
+Building directly on the normalized e-commerce domain from the introductory SQLite course, this 11-module advanced course establishes **PostgreSQL** as an authoritative client/server relational database accessed through two complementary Python interfaces separated by responsibility:
 
 * **DuckDB 2.0** for analytical queries, lazy relational transformations, execution-placement control, and dataframe/Arrow exports.
 * **SQLAlchemy 2.0 (Core + ORM + Sessions)** for transactional application development, object mapping, unit-of-work management, and schema migrations.
@@ -46,7 +46,7 @@ The central distinction is **analytical work versus application persistence**—
 
 ---
 
-## 2. Ten-Module Syllabus (Three Stages)
+## 2. Eleven-Module Syllabus (Four Stages)
 
 ### Stage A — Migrate and Establish the Server Database
 | Module | Directory & Script | Focus |
@@ -69,6 +69,13 @@ The central distinction is **analytical work versus application persistence**—
 | **8** | `8 - SQLAlchemy ORM Models/08_sqlalchemy_orm_models.py` | Declarative mappings, primary/foreign keys, relationships, and object identity |
 | **9** | `9 - Sessions & Transactional Services/09_sessions_and_transactional_services.py` | Session scope, `flush` vs. `commit`, rollback, loading behavior, and transactional order services |
 | **10** | `10 - Migrations, Testing & Capstone/10_migrations_testing_and_capstone.py` | Alembic migrations, integration tests, reporting, and the dual-deliverable application capstone |
+
+### Stage D — Model Context Protocol Integration
+| Module | Directory & Script | Focus |
+| :---: | :--- | :--- |
+| **11** | `11 - MCP Servers over PostgreSQL & DuckDB/11_mcp_servers.py` | Read-only MCP tools and a curated reporting resource; local stdio client, bounded DuckDB aggregation, protocol tests, and opt-in PostgreSQL privilege checks |
+
+Module 11 follows the Module 10 capstone. Start with the synthetic fixture (no PostgreSQL server or LLM account required), then optionally run the separate disposable PostgreSQL lab as `mcp_analyst`. See [the Module 11 guide](11%20-%20MCP%20Servers%20over%20PostgreSQL%20%26%20DuckDB/11_content.md) for installation, client commands, and verification. The lab does not expose arbitrary SQL or write tools and does not modify the course `commerce` schema.
 
 ---
 
