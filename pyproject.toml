@@ -24,6 +24,3 @@ python_files = ["test_*.py"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-
-[tool.pyrefly]
-search-path = [".", "4 - DuckDB PostgreSQL Connection"]
