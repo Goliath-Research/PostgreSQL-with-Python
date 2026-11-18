@@ -1,9 +1,12 @@
-# Pinned introductory-course source for Module 2
+# SQLite migration inputs
 
-These local files remove the coding agent's dependency on access to a private repository.
-They are exact copies from Goliath-Research/Introduction-to-Databases commit
-af5182b90dc610d730449e9de7fc334542b9815c, retained under the adjacent MIT license.
-This directory is source material and offline verification, NOT the completed PostgreSQL migration.
+This fixture contains only the pinned helper and CSV needed to build Module 2's sample SQLite source
+database, plus their license, provenance, and offline verification. It is not a copy of the
+Introduction-to-Databases course and is not a backup or snapshot of student work.
+
+The files are exact copies from Goliath-Research/Introduction-to-Databases commit
+af5182b90dc610d730449e9de7fc334542b9815c, retained under the adjacent MIT license. This directory
+is source material and offline verification, not the completed PostgreSQL migration.
 
 ## Upstream Git blob identities
 
@@ -20,9 +23,9 @@ Do not substitute the older seven-table normalization notebook.
 ## Offline commands, from the PostgreSQL repository root
 
 ```bash
-python -m unittest discover -s source_course -p "test_*.py"
-python "source_course/8 - Python Database Integration & Capstone/ecommerce_snapshot.py" rebuild source_course/baseline_bundle
-python "source_course/8 - Python Database Integration & Capstone/ecommerce_snapshot.py" verify source_course/baseline_bundle
+python -m unittest discover -s "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/fixtures/intro_ecommerce" -p "test_*.py"
+python "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/fixtures/intro_ecommerce/8 - Python Database Integration & Capstone/ecommerce_snapshot.py" rebuild "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/fixtures/intro_ecommerce/baseline_bundle"
+python "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/fixtures/intro_ecommerce/8 - Python Database Integration & Capstone/ecommerce_snapshot.py" verify "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/fixtures/intro_ecommerce/baseline_bundle"
 ```
 
 Rebuild deliberately fails if the destination directory exists. It creates

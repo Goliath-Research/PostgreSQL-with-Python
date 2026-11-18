@@ -52,7 +52,7 @@ The central distinction is **analytical work versus application persistence**—
 | Module | Directory & Script | Focus |
 | :---: | :--- | :--- |
 | **1** | `1 - PostgreSQL Environment/01_postgresql_environment.py` | Reproducible PostgreSQL environment, namespaces (`commerce`, `lab`), role hierarchy, secret-safe configuration, Psycopg 3 connectivity, privilege verification on `lab.connection_probe`, and readiness reporting |
-| **2** | `2 - SQLite to PostgreSQL Migration/02_sqlite_to_postgresql.py` | Schema migration into `commerce`, deliberate design refinements, data loading, identifier handling, and post-migration validation |
+| **2** | `2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/02_sqlite_to_postgresql.py` | Schema migration into `commerce`, deliberate design refinements, data loading, identifier handling, and post-migration validation |
 | **3** | `3 - PostgreSQL SQL & Transactions/03_postgresql_sql_and_transactions.py` | PostgreSQL SQL behavior, strict types (`TIMESTAMPTZ`, `NUMERIC`), isolation levels, locking, and concurrency experiments |
 
 ### Stage B — Analytical Access with DuckDB 2.0
