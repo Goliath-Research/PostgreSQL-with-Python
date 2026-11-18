@@ -13,6 +13,13 @@ SPEC.loader.exec_module(snapshot)
 
 
 class LocalSourceTests(unittest.TestCase):
+    def test_default_csv_stays_with_fixture(self):
+        self.assertEqual(
+            snapshot.DEFAULT_CSV,
+            ROOT / '1 - The Relational Model' / 'messy_ecommerce_orders.csv',
+        )
+        self.assertTrue(snapshot.DEFAULT_CSV.is_file())
+
     def test_exact_upstream_files(self):
         expected = {
             HELPER: '28a27f8b703e2e65de01a7521b5d5979034b6a82',

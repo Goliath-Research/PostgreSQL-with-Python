@@ -3,7 +3,7 @@
 Course: PostgreSQL with Python: Analytics, ORM, and Database Applications — Goliath Research Academy  
 Implementation file: `02_sqlite_to_postgresql.py`  
 Repository directory: `2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/`  
-Source helper: `../source_course/8 - Python Database Integration & Capstone/ecommerce_snapshot.py`  
+Source helper: `fixtures/intro_ecommerce/8 - Python Database Integration & Capstone/ecommerce_snapshot.py`
 Estimated effort: 4–6 hours  
 Documentation baseline: implementation at commit `4c17468edfcf20d168fb716b0f410d2a6dc9da9b`
 
@@ -63,10 +63,12 @@ Module 1 must already have provisioned `goliath_ecommerce`, the course roles, an
 From the repository root, create a new baseline only when one is needed:
 
 ```bash
-python "source_course/8 - Python Database Integration & Capstone/ecommerce_snapshot.py" rebuild source_course/baseline_bundle
+python "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/fixtures/intro_ecommerce/8 - Python Database Integration & Capstone/ecommerce_snapshot.py" rebuild "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/fixtures/intro_ecommerce/baseline_bundle"
 ```
 
 The helper refuses an existing destination. Use an already verified bundle or choose a different new destination; do not delete an existing snapshot merely to bypass this safeguard.
+
+The `fixtures/intro_ecommerce/` directory contains only SQLite migration inputs: the pinned helper and source CSV used to build the sample source database, with provenance, license, and verification. It is not a copy of the introductory course or a backup of student work.
 
 The bundle contains:
 
@@ -362,7 +364,7 @@ Module 3 can build on a verified PostgreSQL target to study PostgreSQL SQL behav
 ## Technical References
 
 - Reviewed implementation commit: https://github.com/Goliath-Research/PostgreSQL-with-Python/commit/4c17468edfcf20d168fb716b0f410d2a6dc9da9b
-- Local source contract/provenance: `../source_course/README.md`
+- Local source contract/provenance: `fixtures/intro_ecommerce/README.md`
 - Python SQLite connection and backup APIs: https://docs.python.org/3/library/sqlite3.html
 - Psycopg transaction management: https://www.psycopg.org/psycopg3/docs/basic/transactions.html
 - PostgreSQL identity columns: https://www.postgresql.org/docs/18/ddl-identity-columns.html
