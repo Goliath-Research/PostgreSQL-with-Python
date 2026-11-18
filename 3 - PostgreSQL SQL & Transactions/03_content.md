@@ -1,5 +1,8 @@
 # Module 3: PostgreSQL SQL & Transactions
 
+Hosted execution architecture and operator responsibilities are described in the
+[Hosted Labs guide](../HOSTED_LABS.md).
+
 - Course: PostgreSQL with Python: Analytics, ORM, and Database Applications — Goliath Research Academy
 - Implementation: `03_postgresql_sql_and_transactions.py` and `module_03_support.py`
 - Directory: `3 - PostgreSQL SQL & Transactions/`

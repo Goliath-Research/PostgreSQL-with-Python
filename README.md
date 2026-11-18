@@ -1,4 +1,6 @@
 # PostgreSQL with Python: Analytics, ORM, and Database Applications
+**Hosted lab architecture and operator requirements:** [HOSTED_LABS.md](HOSTED_LABS.md) — current execution modes, security boundaries, and outstanding hosting work.
+
 **Institution:** Goliath Research Academy  
 **Delivery Format:** Interactive Marimo Reactive Notebooks (`.py`), Module Reference Guides (`*_content.md`), Reproducible PostgreSQL 18 Laboratory (`compose.yaml`), DuckDB 2.0, SQLAlchemy 2.0, and Automated Verification Suites  
 **Prerequisites:** Completion of *Introduction to Databases: Relational Foundations & Python Integration* (8-module SQLite course); Python 3.11+, SQL fundamentals, and basic terminal usage
@@ -124,8 +126,8 @@ PostgreSQL-with-Python/
      docker compose down -v
      ```
 
-### Alternative Path: Native PostgreSQL 18 / 19 Installation
-If you run a local native PostgreSQL 18 or 19 server instead of Docker:
+### Alternative Path: Native PostgreSQL 18 Installation
+If you run a local native PostgreSQL 18 server instead of Docker:
 1. Ensure PostgreSQL is listening solely on `127.0.0.1` and update `PGPORT` in `.env` to match your local port.
 2. Create the `goliath_ecommerce` database as a superuser (`createdb -U postgres goliath_ecommerce`).
 3. Execute the bootstrap scripts in order:

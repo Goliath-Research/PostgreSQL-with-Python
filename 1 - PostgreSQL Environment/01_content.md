@@ -1,5 +1,10 @@
 # Module 1: PostgreSQL Environment, Connections & Access Control
 
+> **Hosted-lab architecture and operator requirements:** See the
+> [Hosted Labs guide](../HOSTED_LABS.md) for execution modes, browser-versus-
+> runtime responsibilities, and the distinction between recommendations and
+> the current local-only Compose configuration.
+
 **Course:** PostgreSQL with Python: Analytics, ORM, and Database Applications — Goliath Research Academy  
 **Implementation File:** `01_postgresql_environment.py`  
 **Bootstrap & Infrastructure Files:** `../compose.yaml`, `../.env.example`, `../bootstrap/01_roles_and_database.sql`, `../bootstrap/02_schemas_and_probe.sql`  
@@ -53,7 +58,7 @@ Marimo / Python ──► Psycopg 3 / DuckDB / SQLAlchemy
                         │
                 Host + Port + Authentication
                         ▼
-               PostgreSQL Server (18 / 19)
+               PostgreSQL Server (18)
                         │
            Database (goliath_ecommerce)
               ├── Schema: commerce (Module 2 business tables)
@@ -64,8 +69,8 @@ Marimo / Python ──► Psycopg 3 / DuckDB / SQLAlchemy
 - **Why changing a connection string is not a migration:** Simply swapping `sqlite3.connect(...)` for `psycopg.connect(...)` does not create roles, configure schema ownership, enforce least-privilege access, or map SQLite dynamic typing (`typeof(...)`) to strict PostgreSQL native types (`TIMESTAMPTZ`, `NUMERIC`, identity columns).
 
 ### 1.2 Establish a reproducible laboratory
-The primary laboratory uses `compose.yaml` with `postgres:18-bookworm` (and supports native PostgreSQL 18 / 19 installations):
-- **Pinned Image Version:** Uses `postgres:18-bookworm` rather than an unpinned `postgres:latest` tag so every student runs consistent server behavior and catalog layouts.
+The primary laboratory uses `compose.yaml` with `postgres:18-bookworm` (and supports native PostgreSQL 18 installations):
+- **PostgreSQL 18 Image Tag:** Uses `postgres:18-bookworm` rather than `postgres:latest`. This is a floating-minor tag, not an exact release pin; use a tested exact tag (and verified digest for controlled releases) when exact image reproducibility is required.
 - **Named Data Volume (`goliath_pgdata`):** Persists `/var/lib/postgresql/data` across container restarts.
 - **Localhost-Only Port Publishing:** `"127.0.0.1:${PG_HOST_PORT:-54329}:5432"` binds the host port exclusively to the loopback interface (`127.0.0.1`), preventing accidental exposure on local Wi-Fi or LAN networks.
 - **Health/Readiness Check:** Runs `pg_isready -U postgres -d goliath_ecommerce` so tools can distinguish "container started" from "PostgreSQL ready to accept connections."
