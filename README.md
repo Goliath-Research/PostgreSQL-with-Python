@@ -1,3 +1,4 @@
+# *Relational Databases with Python*
 # PostgreSQL with Python: Advanced Relational Databases
 **Hosted lab architecture and operator requirements:** [HOSTED_LABS.md](HOSTED_LABS.md) — current execution modes, security boundaries, and outstanding hosting work.
 
