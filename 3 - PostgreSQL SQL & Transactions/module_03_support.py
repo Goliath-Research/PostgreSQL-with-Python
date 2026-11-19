@@ -23,7 +23,7 @@ from dotenv import dotenv_values
 
 
 _KEY = secrets.token_bytes(32)
-_NAMES = ("commit_rollback", "savepoints", "isolation", "locking", "serializable")
+_NAMES = ("commit_rollback", "savepoints", "isolation", "locking", "serializable", "planner")
 _TABLES = {
     "customers": {"customer_id": "bigint", "email": "text", "customer_name": "text"},
     "products": {"sku": "text", "product_name": "text", "category": "text"},
@@ -689,8 +689,101 @@ def _serializable(config, run_id):
             "retry_attempts": attempt + 1}
 
 
+def _planner(config, run_id):
+    """Compare join nodes, then build lab-only GIN and materialized-view objects.
+
+    Commerce is read, not altered. The search table and category view live in lab.
+    """
+    del run_id
+    with _session(config, "course_analyst") as conn:
+        conn.execute("SET TRANSACTION READ ONLY")
+        plan_rows = conn.execute(
+            """EXPLAIN (ANALYZE, BUFFERS)
+               SELECT o.order_id, i.line_no
+               FROM commerce.orders AS o
+               JOIN commerce.order_items AS i ON i.order_id = o.order_id"""
+        ).fetchall()
+    plan = "\n".join(row[0] for row in plan_rows)
+    nested_loop = "Nested Loop" in plan
+    hash_join = "Hash Join" in plan
+    merge_join = "Merge Join" in plan
+    buffers_reported = "Buffers:" in plan
+    if not (nested_loop or hash_join or merge_join) or not buffers_reported:
+        raise ValueError
+    with _session(config, "course_migrator") as conn:
+        conn.execute("SET LOCAL ROLE course_owner")
+        conn.execute(
+            """CREATE TABLE IF NOT EXISTS lab.module_03_search (
+                   search_id integer PRIMARY KEY,
+                   doc jsonb NOT NULL
+               )"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS module_03_search_doc_gin
+               ON lab.module_03_search USING gin (doc)"""
+        )
+        conn.execute(
+            """CREATE MATERIALIZED VIEW IF NOT EXISTS lab.module_03_category_totals AS
+               SELECT category, count(*)::integer AS product_count
+               FROM commerce.products
+               GROUP BY category"""
+        )
+        conn.execute("REFRESH MATERIALIZED VIEW lab.module_03_category_totals")
+        conn.execute(
+            """INSERT INTO lab.module_03_search (search_id, doc)
+               VALUES (1, '{"sku": "SKU-NVME-2TB"}'::jsonb)
+               ON CONFLICT (search_id) DO UPDATE SET doc = EXCLUDED.doc"""
+        )
+        before = conn.execute(
+            "SELECT ctid::text FROM lab.module_03_search WHERE search_id = 1"
+        ).fetchone()[0]
+        conn.execute(
+            """UPDATE lab.module_03_search
+               SET doc = jsonb_set(doc, '{sku}', '"SKU-UPDATED"')
+               WHERE search_id = 1"""
+        )
+        after_ctid, after_sku = conn.execute(
+            "SELECT ctid::text, doc->>'sku' FROM lab.module_03_search WHERE search_id = 1"
+        ).fetchone()
+        category_count = conn.execute(
+            "SELECT count(*)::integer FROM lab.module_03_category_totals"
+        ).fetchone()[0]
+        gin_index = conn.execute(
+            """SELECT am.amname
+               FROM pg_index i
+               JOIN pg_class index_rel ON index_rel.oid = i.indexrelid
+               JOIN pg_am am ON am.oid = index_rel.relam
+               JOIN pg_class table_rel ON table_rel.oid = i.indrelid
+               JOIN pg_namespace n ON n.oid = table_rel.relnamespace
+               WHERE n.nspname = 'lab' AND table_rel.relname = 'module_03_search'
+                 AND am.amname = 'gin'"""
+        ).fetchone()
+    with _connect(config, "course_migrator") as conn:
+        conn.autocommit = True
+        conn.execute("SET ROLE course_owner")
+        conn.execute("VACUUM lab.module_03_search")
+        survived = conn.execute(
+            "SELECT doc->>'sku' FROM lab.module_03_search WHERE search_id = 1"
+        ).fetchone()[0]
+    if (not gin_index or after_sku != "SKU-UPDATED" or survived != "SKU-UPDATED"
+            or before == after_ctid):
+        raise ValueError
+    return {
+        "nested_loop": nested_loop,
+        "hash_join": hash_join,
+        "merge_join": merge_join,
+        "buffers_reported": buffers_reported,
+        "tuple_version_changed": True,
+        "gin_index": True,
+        "category_count": category_count,
+        "vacuum_completed": True,
+        "live_row_survived": True,
+    }
+
+
 _EXPERIMENTS = {"commit_rollback": _commit_rollback, "savepoints": _savepoints,
-                "isolation": _isolation, "locking": _locking, "serializable": _serializable}
+                "isolation": _isolation, "locking": _locking, "serializable": _serializable,
+                "planner": _planner}
 
 
 def run_experiment(config: Config, approval: Approval, name: str) -> dict:
@@ -729,10 +822,14 @@ def report_json(report: dict) -> str:
     booleans = {"ok", "cleanup_may_be_required", "null_is_null", "committed",
                 "rollback_preserved_committed_value", "savepoint_recovered",
                 "read_committed_refreshes", "repeatable_read_snapshot", "ordered_completed",
-                "repeatable_read_invariant_violated", "invariant_preserved"}
+                "repeatable_read_invariant_violated", "invariant_preserved",
+                "nested_loop", "hash_join", "merge_join", "buffers_reported",
+                "tuple_version_changed", "gin_index", "vacuum_completed",
+                "live_row_survived"}
     numbers = {"integer_division", "orders_with_items", "order_item_count",
                "positive_price_count", "ranked_order_count", "retry_attempts",
-               "deadlock_timeout", "lock_timeout", "statement_timeout"}
+               "deadlock_timeout", "lock_timeout", "statement_timeout",
+               "category_count"}
     strings = {
         "experiment": set(_NAMES),
         "error": set(_SQLSTATES.values()) | {"verification_failed", "connection_failed",

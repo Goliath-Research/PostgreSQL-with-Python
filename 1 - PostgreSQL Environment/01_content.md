@@ -5,7 +5,7 @@
 > runtime responsibilities, and the distinction between recommendations and
 > the current local-only Compose configuration.
 
-**Course:** PostgreSQL with Python: Analytics, ORM, and Database Applications — Goliath Research Academy  
+**Course:** PostgreSQL with Python: Advanced Relational Databases — Goliath Research Academy  
 **Implementation File:** `01_postgresql_environment.py`  
 **Bootstrap & Infrastructure Files:** `../compose.yaml`, `../.env.example`, `../bootstrap/01_roles_and_database.sql`, `../bootstrap/02_schemas_and_probe.sql`  
 **Estimated Effort:** 3–4 hours
@@ -71,7 +71,7 @@ Marimo / Python ──► Psycopg 3 / DuckDB / SQLAlchemy
 ### 1.2 Establish a reproducible laboratory
 The primary laboratory uses `compose.yaml` with `postgres:18-bookworm` (and supports native PostgreSQL 18 installations):
 - **PostgreSQL 18 Image Tag:** Uses `postgres:18-bookworm` rather than `postgres:latest`. This is a floating-minor tag, not an exact release pin; use a tested exact tag (and verified digest for controlled releases) when exact image reproducibility is required.
-- **Named Data Volume (`goliath_pgdata`):** Persists `/var/lib/postgresql/data` across container restarts.
+- **Named Data Volume (`goliath_pgdata`):** Persists `/var/lib/postgresql` across container restarts. PostgreSQL 18 keeps its data directory at `/var/lib/postgresql/18/docker`.
 - **Localhost-Only Port Publishing:** `"127.0.0.1:${PG_HOST_PORT:-54329}:5432"` binds the host port exclusively to the loopback interface (`127.0.0.1`), preventing accidental exposure on local Wi-Fi or LAN networks.
 - **Health/Readiness Check:** Runs `pg_isready -U postgres -d goliath_ecommerce` so tools can distinguish "container started" from "PostgreSQL ready to accept connections."
 - **Normal Shutdown vs. Destructive Reset:**

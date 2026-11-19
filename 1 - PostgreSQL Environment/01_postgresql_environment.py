@@ -33,7 +33,7 @@ def _(mo):
     mo.md(
         """
         # Module 1: PostgreSQL Environment, Connections & Access Control
-        ## PostgreSQL with Python: Analytics, ORM, and Database Applications — Goliath Research Academy
+        ## PostgreSQL with Python: Advanced Relational Databases — Goliath Research Academy
 
         Establish a reproducible client/server PostgreSQL environment, configure credentials without exposing secrets, verify separate application (`course_app`) and analytical (`course_analyst`) identities using **Psycopg 3**, test authorization boundaries against `lab.connection_probe` inside rollback-only transactions, and export a secret-free readiness report.
 
@@ -930,7 +930,7 @@ def _(
 
     _overall_ready = all(bool(r["passed"]) for r in readiness_rows)
     _report_payload = {
-        "course": "PostgreSQL with Python: Analytics, ORM, and Database Applications",
+        "course": "PostgreSQL with Python: Advanced Relational Databases",
         "module": "Module 1: PostgreSQL Environment, Connections & Access Control",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "overall_ready_for_module_2": _overall_ready,

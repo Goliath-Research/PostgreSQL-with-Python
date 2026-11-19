@@ -18,7 +18,7 @@ The Engine packages a dialect and connection pool. Check out a Connection with `
 
 ## PostgreSQL companion: course_app
 
-Start the existing course database. Set `PGHOST`, `PGPORT`, and `PGDATABASE` in your shell as needed (defaults: localhost, 5432, goliath_ecommerce). The script prompts for the course_app password without echoing it. It never reads or changes the project .env and never prints a DSN. Do not put the password on the command line.
+Start the existing course database. Set `PGHOST`, `PGPORT`, and `PGDATABASE` in your shell as needed (defaults: localhost, 54329, goliath_ecommerce, matching `compose.yaml`). The script prompts for the course_app password without echoing it. It never reads or changes the project .env and never prints a DSN. Do not put the password on the command line.
 
 ```powershell
 python "7 - SQLAlchemy Core & Connections/07_postgresql_probe.py" --quantity 3

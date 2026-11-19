@@ -1,6 +1,6 @@
 # Module 4: DuckDB PostgreSQL Connection
 
-Course: PostgreSQL with Python: Analytics, ORM, and Database Applications  
+Course: PostgreSQL with Python: Advanced Relational Databases  
 Notebook: `04_duckdb_postgresql_connection.py`  
 Implementation: `module_04_support.py`
 
@@ -23,7 +23,7 @@ Keep the notebook and helper side by side. Open the notebook from the repository
 python -m marimo edit "4 - DuckDB PostgreSQL Connection/04_duckdb_postgresql_connection.py"
 ```
 
-Dependencies are native Python with Marimo, DuckDB, Psycopg 3 (for building a libpq connection string), and python-dotenv. Use a DuckDB build with the official `postgres` extension available for your platform. The notebook reports the actual runtime version; this draft does not assert a tested DuckDB release range. It uses `postgres_query` rather than depending on the newer `CONNECT`/`DISCONNECT` API. `DETACH` removes the attachment; it is not `DISCONNECT`.
+Dependencies are native Python with Marimo, DuckDB, Psycopg 3 (for building a libpq connection string), and python-dotenv. Use a DuckDB 2.x build with the official `postgres` extension available for your platform. The notebook reports the actual runtime version. It uses `postgres_query` rather than depending on the newer `CONNECT`/`DISCONNECT` API. `DETACH` removes the attachment; it is not `DISCONNECT`.
 
 Use your repository-root `.env` with `PGHOST`, `PGPORT`, `PGDATABASE=goliath_ecommerce`, `COURSE_ANALYST_USER=course_analyst`, and `COURSE_ANALYST_PASSWORD`. Environment variables override the file. The default port is 54329; use your actual port for a native server. `PGSSLMODE` and `PGSSLROOTCERT` can configure TLS; for a remote connection, use a verified TLS policy appropriate to the deployment. Leave credentials out of Git and screenshots. Run against the course database, not production.
 

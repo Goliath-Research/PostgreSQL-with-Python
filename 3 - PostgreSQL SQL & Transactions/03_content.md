@@ -3,7 +3,7 @@
 Hosted execution architecture and operator responsibilities are described in the
 [Hosted Labs guide](../HOSTED_LABS.md).
 
-- Course: PostgreSQL with Python: Analytics, ORM, and Database Applications — Goliath Research Academy
+- Course: PostgreSQL with Python: Advanced Relational Databases — Goliath Research Academy
 - Implementation: `03_postgresql_sql_and_transactions.py` and `module_03_support.py`
 - Directory: `3 - PostgreSQL SQL & Transactions/`
 - Estimated effort: 4–6 hours
@@ -28,6 +28,9 @@ After completing the module, you should be able to:
 7. Explain a serialization anomaly and retry the **whole** transaction safely.
 8. Interpret evidence, distinguish blocked exercises from passes, and clean up
    only an explicitly selected run.
+9. Read `EXPLAIN (ANALYZE, BUFFERS)`, name the join node PostgreSQL chose, and
+   explain a lab-schema `GIN` index, a materialized view refresh, and what
+   `VACUUM` reclaims.
 
 ## Section summary
 
@@ -42,6 +45,7 @@ After completing the module, you should be able to:
 | 3.7 | Locks | NOWAIT, real deadlock detection, ordered acquisition |
 | 3.8 | Serializable | Write skew, 40001, bounded whole-transaction retry |
 | 3.9 | Evidence, cleanup, assessment | Redacted results and separately authorized cleanup |
+| 3.10 | Plans, GIN, vacuum, materialized view | Join node and buffer lines; lab-only index and refresh |
 
 ## Preparation
 
@@ -198,8 +202,8 @@ PostgreSQL concurrency pass. Keep each run UUID and submit cleanup separately
 for exactly that run. Cleanup failure must be reported; it must not be presented
 as success or followed by a schema-wide reset.
 
-Run offline tests explicitly (the repository's default pytest discovery does not
-include this directory):
+Run the Module 3 tests explicitly, or from the repository root where `pytest`
+collects this directory:
 
 ```bash
 python -m pytest "3 - PostgreSQL SQL & Transactions/tests/test_module_03.py"
@@ -212,8 +216,51 @@ The integration test is skipped unless `MODULE03_DISPOSABLE` is exactly
 Only opt in against a separately created, bootstrapped and migrated disposable
 PostgreSQL 18 instance, never an ordinary course database. The test creates lab
 objects if absent and commits synthetic runs; its cleanup removes only the run
-UUIDs it created, not the lab table itself. A skipped integration test does not
+UUIDs it created, not the lab table itself. The planner action also leaves
+`lab.module_03_search` and `lab.module_03_category_totals`. A skipped integration test does not
 verify PostgreSQL behavior.
+
+## 3.10 Plans, GIN, vacuum, and a materialized view
+
+Submit **Planner, GIN, and refresh** after the lab table exists. The action
+reads `commerce` and creates objects only in `lab`, so the Module 2 schema
+contract stays intact.
+
+`EXPLAIN (ANALYZE, BUFFERS)` runs the join of `commerce.orders` to
+`commerce.order_items` and prints the plan PostgreSQL used. On this small
+fixture the node is one of three:
+
+```mermaid
+flowchart TD
+    explain["EXPLAIN ANALYZE, BUFFERS"]
+    explain --> nestedLoop[NestedLoop]
+    explain --> hashJoin[HashJoin]
+    explain --> mergeJoin[MergeJoin]
+    nestedLoop --> buffers["Buffers: shared hits and reads"]
+    hashJoin --> buffers
+    mergeJoin --> buffers
+```
+
+`Nested Loop` walks the outer row and looks up matches in the inner input.
+`Hash Join` builds a hash table from one input and probes it with the other.
+`Merge Join` walks two inputs that are ordered on the join key. `BUFFERS`
+reports how many blocks came from cache (`hit`) and how many were read. The
+redacted evidence records which of those node names appeared and that a
+buffer line was present. It does not treat one node as the winner.
+
+`lab.module_03_search.doc` is `jsonb`. A `GIN` index supports containment
+lookups on that document. The index is not added to a `commerce` table.
+
+An `UPDATE` writes a new tuple version and leaves the previous version dead.
+`VACUUM` reclaims dead tuple space for reuse and leaves the current row in
+place. The evidence checks that the row's `ctid` changed and that the updated
+SKU is still readable after `VACUUM`. This is tuple visibility, not a lesson
+on the buffer pool or WAL.
+
+`lab.module_03_category_totals` stores the category counts from
+`commerce.products`. `REFRESH MATERIALIZED VIEW` replaces that stored result.
+Course 1 pointed at this as the PostgreSQL place to keep an expensive report
+when a slightly older copy is acceptable. SQLite has no equivalent command.
 
 ### Assessment rubric
 
@@ -224,6 +271,7 @@ verify PostgreSQL behavior.
 | Transactions | Explains committed/rolled-back state, 25P02 and savepoint recovery |
 | Concurrency | Explains two snapshots, 55P03, actual 40P01 and lock ordering |
 | Serializable | Names invariant, 40001 and full retry with a possible rejected decision |
+| Plans and refresh | Names the join node and buffer line; explains GIN, vacuum, and the lab view |
 | Operational safety | Distinguishes pass/skip/block, protects credentials and scopes cleanup |
 
 ### Troubleshooting and limitations
@@ -242,6 +290,7 @@ verify PostgreSQL behavior.
 
 ### References
 
+* [PostgreSQL 18 EXPLAIN](https://www.postgresql.org/docs/18/sql-explain.html)
 * [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html)
 * [PostgreSQL 18 explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html)
 * [PostgreSQL 18 serialization failure handling](https://www.postgresql.org/docs/18/mvcc-serialization-failure-handling.html)

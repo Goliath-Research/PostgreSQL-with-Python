@@ -17,19 +17,15 @@ Building directly on the normalized e-commerce domain from the introductory SQLi
 
 The central distinction is **analytical work versus application persistence**—not two interchangeable ways of querying the same database:
 
-```text
-                            PostgreSQL
-                 Authoritative relational database
-                                │
-                  ┌─────────────┴─────────────┐
-                  │                           │
-        Analytical workflows        Application workflows
-                  │                           │
-             DuckDB 2.0                  SQLAlchemy
-       Python relational API       Core + ORM + Sessions
-                  │                           │
-       Filter, join, aggregate,    Entities, relationships,
-       analyze, export results     transactions, persistence
+```mermaid
+flowchart TD
+    postgres["PostgreSQL: authoritative relational database"]
+    postgres --> analytical[Analytical workflows]
+    postgres --> application[Application workflows]
+    analytical --> duckdb["DuckDB 2.0: Python relational API"]
+    application --> sqlalchemy["SQLAlchemy 2.0: Core, ORM, and Sessions"]
+    duckdb --> duckWork["Filter, join, aggregate, and export results"]
+    sqlalchemy --> appWork["Entities, relationships, transactions, and persistence"]
 ```
 
 ### Core Pedagogical Principles
@@ -41,7 +37,7 @@ The central distinction is **analytical work versus application persistence**—
 2. **DuckDB as an Analytical Execution Engine (Not Just a Pandas Wrapper):**
    * A DuckDB relation represents a **lazy query**, not an already-materialized in-memory dataframe.
    * Re-reading a relation can re-execute the query; converting to pandas or Arrow is an explicit execution and materialization boundary.
-   * Students compare querying attached PostgreSQL tables through DuckDB, explicitly routing queries to PostgreSQL (`CONNECT` mode), and extracting bounded datasets for local processing.
+   * Students compare querying attached PostgreSQL tables through DuckDB, sending a fixed statement with `postgres_query`, and aggregating a bounded sample after `DETACH`. Module 10 asks for a separate comparison with `CONNECT` mode.
 3. **SQLAlchemy from Core to ORM:**
    * Students learn SQLAlchemy Core (`Engine`, connections, parameterized SQL expressions) before declarative ORM mappings and `Session` lifecycle (`flush` vs. `commit`, rollback, object identity, and emitted SQL inspection).
 
@@ -59,7 +55,7 @@ The central distinction is **analytical work versus application persistence**—
 ### Stage B — Analytical Access with DuckDB 2.0
 | Module | Directory & Script | Focus |
 | :---: | :--- | :--- |
-| **4** | `4 - DuckDB PostgreSQL Connection/04_duckdb_postgresql_connection.py` | PostgreSQL extension setup, read-only access as `course_analyst`, attached tables, `CONNECT` mode, and execution placement |
+| **4** | `4 - DuckDB PostgreSQL Connection/04_duckdb_postgresql_connection.py` | PostgreSQL extension setup, read-only access as `course_analyst`, attached tables, `postgres_query`, `DETACH`, and execution placement |
 | **5** | `5 - Pythonic Relational Analytics/05_pythonic_relational_analytics.py` | Filtering, projection, joins, grouping, aggregation, generated SQL inspection, and lazy evaluation |
 | **6** | `6 - Analytical Reporting & Performance/06_analytical_reporting_and_performance.py` | Window calculations, pandas/Arrow materialization boundaries, exports, and measured comparisons |
 
@@ -104,12 +100,22 @@ PostgreSQL-with-Python/
 ├── LICENSE
 ├── pyproject.toml
 ├── README.md
+├── HOSTED_LABS.md
+├── bootstrap.sql
 ├── bootstrap/
 │   ├── 01_roles_and_database.sql
 │   └── 02_schemas_and_probe.sql
-└── 1 - PostgreSQL Environment/
-    ├── 01_postgresql_environment.py
-    └── 01_content.md
+├── 1 - PostgreSQL Environment/
+├── 2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/
+├── 3 - PostgreSQL SQL & Transactions/
+├── 4 - DuckDB PostgreSQL Connection/
+├── 5 - Pythonic Relational Analytics/
+├── 6 - Analytical Reporting & Performance/
+├── 7 - SQLAlchemy Core & Connections/
+├── 8 - SQLAlchemy ORM Models/
+├── 9 - Sessions & Transactional Services/
+├── 10 - Migrations, Testing & Capstone/
+└── 11 - MCP Servers over PostgreSQL & DuckDB/
 ```
 
 ### Primary Path: Containerized PostgreSQL 18 Laboratory
@@ -150,6 +156,8 @@ Install dependencies in a Python 3.11+ virtual environment and launch Marimo:
 pip install -e .
 marimo edit "1 - PostgreSQL Environment/01_postgresql_environment.py"
 ```
+
+Root `pytest` collects the Module 3 suite in `3 - PostgreSQL SQL & Transactions/tests`. Modules 4–11, and the copied Module 2 source helper, document `python -m unittest discover` in each module guide. Several of those checks stay skipped until a disposable database is configured.
 
 ---
 

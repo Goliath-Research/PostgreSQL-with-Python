@@ -15,7 +15,7 @@ def main():
         url = URL.create("postgresql+psycopg", username="course_app",
                          password=getpass("course_app password: "),
                          host=os.getenv("PGHOST", "localhost"),
-                         port=int(os.getenv("PGPORT", "5432")),
+                         port=int(os.getenv("PGPORT", "54329")),
                          database=os.getenv("PGDATABASE", "goliath_ecommerce"))
         engine = create_engine(url, hide_parameters=True, connect_args={"connect_timeout": 5})
         with engine.begin() as conn:

@@ -1,6 +1,6 @@
 # Module 2: Migrating the E-Commerce Database from SQLite to PostgreSQL
 
-Course: PostgreSQL with Python: Analytics, ORM, and Database Applications — Goliath Research Academy  
+Course: PostgreSQL with Python: Advanced Relational Databases — Goliath Research Academy  
 Implementation file: `02_sqlite_to_postgresql.py`  
 Repository directory: `2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/`  
 Source helper: `fixtures/intro_ecommerce/8 - Python Database Integration & Capstone/ecommerce_snapshot.py`

@@ -103,16 +103,15 @@ configuration**, not production-ready or multi-user-ready. It currently has:
 - Fixed `container_name: goliath_pg_lab`.
 - Explicit named volume `goliath_pgdata`.
 - A default published host port of `54329` (bound to localhost).
-- A PostgreSQL 18 data mount at `/var/lib/postgresql/data`.
+- A PostgreSQL 18 data mount at `/var/lib/postgresql`, the image's volume target. Default `PGDATA` is `/var/lib/postgresql/18/docker`.
 
 Distinct Compose project names do not remove the fixed container-name and
 explicit-volume collisions or the risk of sharing the named volume; instances
 using the default host port also conflict. A future hosted template must remove
 or isolate explicit global names, avoid conflicting host ports, and separate
-learner storage and credentials. The official PostgreSQL 18+ image uses
-`/var/lib/postgresql` as its volume target, with default `PGDATA` at
-`/var/lib/postgresql/18/docker`; a future template must follow that image
-layout.
+learner storage and credentials. Do not point this mount at a volume that was
+initialized under `/var/lib/postgresql/data` without a backup and a reviewed
+migration.
 
 These are outstanding implementation requirements, not changes made by this
 documentation. Do not move or reinitialize an existing volume, or point a new

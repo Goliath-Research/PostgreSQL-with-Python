@@ -1,5 +1,5 @@
 -- =============================================================================
--- PostgreSQL with Python: Analytics, ORM, and Database Applications
+-- PostgreSQL with Python: Advanced Relational Databases
 -- Module 1 One-Time Provisioning Script (bootstrap.sql)
 --
 -- Usage (run as an administrative PostgreSQL superuser via psql):

@@ -103,7 +103,34 @@ def _(mo):
     failed cleanup is not success. Reports contain no credentials, DSNs,
     raw driver messages or business rows. A skipped test or blocked
     demonstration is not a pass.
+
+    ## 3.10 Plans, GIN, vacuum, and a materialized view
+    Submit **Planner, GIN, and refresh** after provisioning. The action reads
+    `commerce` and writes only in `lab`. `EXPLAIN (ANALYZE, BUFFERS)` names the
+    join node PostgreSQL chose and reports buffer hits. A `jsonb` column in
+    `lab.module_03_search` gets a `GIN` index. An update leaves the previous
+    tuple version behind; `VACUUM` reclaims that dead version and keeps the
+    live row. `lab.module_03_category_totals` is a materialized view of product
+    categories, replaced with `REFRESH MATERIALIZED VIEW`.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.vstack([
+        mo.md("### Join methods reported by EXPLAIN"),
+        mo.mermaid("""
+flowchart TD
+    explain["EXPLAIN ANALYZE, BUFFERS"]
+    explain --> nestedLoop[NestedLoop]
+    explain --> hashJoin[HashJoin]
+    explain --> mergeJoin[MergeJoin]
+    nestedLoop --> buffers["Buffers: shared hits and reads"]
+    hashJoin --> buffers
+    mergeJoin --> buffers
+"""),
+    ])
     return
 
 
@@ -176,7 +203,9 @@ def _(Path, lab, mo):
             options={"Read-only SQL examples": "read", "Provision lab": "provision",
                      "Commit and rollback": "commit_rollback", "Savepoints": "savepoints",
                      "Isolation snapshots": "isolation", "Row locks": "locking",
-                     "Serializable": "serializable", "Cleanup one run": "cleanup"},
+                     "Serializable": "serializable",
+                     "Planner, GIN, and refresh": "planner",
+                     "Cleanup one run": "cleanup"},
             value="Read-only SQL examples", label="Action"),
         "run_id": mo.ui.text(label="Run UUID (cleanup only)"),
         "confirmation": mo.ui.text(label="Type READ, PROVISION, RUN, or CLEANUP as appropriate"),
