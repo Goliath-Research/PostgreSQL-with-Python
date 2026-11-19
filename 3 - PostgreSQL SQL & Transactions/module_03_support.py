@@ -23,7 +23,7 @@ from dotenv import dotenv_values
 
 
 _KEY = secrets.token_bytes(32)
-_NAMES = ("commit_rollback", "savepoints", "isolation", "locking", "serializable", "planner")
+_NAMES = ("commit_rollback", "savepoints", "isolation", "locking", "serializable", "planner", "triggers")
 _TABLES = {
     "customers": {"customer_id": "bigint", "email": "text", "customer_name": "text"},
     "products": {"sku": "text", "product_name": "text", "category": "text"},
@@ -781,9 +781,191 @@ def _planner(config, run_id):
     }
 
 
+def _triggers(config, run_id):
+    """Show a status rule, an audit row, and a view insert, all inside lab.
+
+    Commerce is not altered. Every trigger function qualifies its tables and
+    keeps its search path on pg_catalog.
+    """
+    del run_id
+    with _session(config, "course_migrator") as conn:
+        conn.execute("SET LOCAL ROLE course_owner")
+        conn.execute(
+            """CREATE TABLE IF NOT EXISTS lab.module_03_status (
+                   order_key integer PRIMARY KEY,
+                   status text NOT NULL
+               )"""
+        )
+        conn.execute(
+            """CREATE TABLE IF NOT EXISTS lab.module_03_status_audit (
+                   audit_id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                   order_key integer NOT NULL,
+                   old_status text NOT NULL,
+                   new_status text NOT NULL
+               )"""
+        )
+        conn.execute(
+            """CREATE TABLE IF NOT EXISTS lab.module_03_lines (
+                   line_id integer PRIMARY KEY,
+                   sku text NOT NULL,
+                   quantity integer NOT NULL
+               )"""
+        )
+        conn.execute(
+            """CREATE OR REPLACE VIEW lab.module_03_line_entry AS
+               SELECT line_id, sku, quantity FROM lab.module_03_lines"""
+        )
+        conn.execute(
+            """CREATE OR REPLACE FUNCTION lab.module_03_reject_illegal_status()
+               RETURNS trigger
+               LANGUAGE plpgsql
+               SET search_path = pg_catalog
+               AS $fn$
+               BEGIN
+                   IF OLD.status = NEW.status THEN
+                       RETURN NEW;
+                   END IF;
+                   IF (OLD.status, NEW.status) IN (
+                       ('PENDING', 'PAID'),
+                       ('PAID', 'SHIPPED'),
+                       ('PAID', 'CANCELLED'),
+                       ('PENDING', 'CANCELLED')
+                   ) THEN
+                       RETURN NEW;
+                   END IF;
+                   RAISE EXCEPTION 'illegal status transition';
+               END;
+               $fn$"""
+        )
+        conn.execute(
+            """CREATE OR REPLACE FUNCTION lab.module_03_audit_status()
+               RETURNS trigger
+               LANGUAGE plpgsql
+               SET search_path = pg_catalog
+               AS $fn$
+               BEGIN
+                   IF OLD.status IS DISTINCT FROM NEW.status THEN
+                       INSERT INTO lab.module_03_status_audit (order_key, old_status, new_status)
+                       VALUES (NEW.order_key, OLD.status, NEW.status);
+                   END IF;
+                   RETURN NEW;
+               END;
+               $fn$"""
+        )
+        conn.execute(
+            """CREATE OR REPLACE FUNCTION lab.module_03_line_entry_insert()
+               RETURNS trigger
+               LANGUAGE plpgsql
+               SET search_path = pg_catalog
+               AS $fn$
+               BEGIN
+                   INSERT INTO lab.module_03_lines (line_id, sku, quantity)
+                   VALUES (NEW.line_id, NEW.sku, NEW.quantity);
+                   RETURN NEW;
+               END;
+               $fn$"""
+        )
+        conn.execute(
+            "DROP TRIGGER IF EXISTS module_03_status_transition ON lab.module_03_status"
+        )
+        conn.execute(
+            """CREATE TRIGGER module_03_status_transition
+               BEFORE UPDATE ON lab.module_03_status
+               FOR EACH ROW
+               EXECUTE FUNCTION lab.module_03_reject_illegal_status()"""
+        )
+        conn.execute(
+            "DROP TRIGGER IF EXISTS module_03_status_audit ON lab.module_03_status"
+        )
+        conn.execute(
+            """CREATE TRIGGER module_03_status_audit
+               AFTER UPDATE ON lab.module_03_status
+               FOR EACH ROW
+               EXECUTE FUNCTION lab.module_03_audit_status()"""
+        )
+        conn.execute(
+            "DROP TRIGGER IF EXISTS module_03_line_entry_insert ON lab.module_03_line_entry"
+        )
+        conn.execute(
+            """CREATE TRIGGER module_03_line_entry_insert
+               INSTEAD OF INSERT ON lab.module_03_line_entry
+               FOR EACH ROW
+               EXECUTE FUNCTION lab.module_03_line_entry_insert()"""
+        )
+        conn.execute("DELETE FROM lab.module_03_status_audit WHERE order_key IN (1, 2)")
+        conn.execute("DELETE FROM lab.module_03_status WHERE order_key IN (1, 2)")
+        conn.execute("DELETE FROM lab.module_03_lines WHERE line_id = 1")
+        conn.execute(
+            "INSERT INTO lab.module_03_status (order_key, status) VALUES (1, 'PENDING')"
+        )
+        conn.execute(
+            "UPDATE lab.module_03_status SET status = 'PAID' WHERE order_key = 1"
+        )
+        status = conn.execute(
+            "SELECT status FROM lab.module_03_status WHERE order_key = 1"
+        ).fetchone()[0]
+        audit = conn.execute(
+            """SELECT old_status, new_status FROM lab.module_03_status_audit
+               WHERE order_key = 1 ORDER BY audit_id"""
+        ).fetchall()
+        conn.execute("SAVEPOINT illegal")
+        try:
+            conn.execute(
+                "UPDATE lab.module_03_status SET status = 'PENDING' WHERE order_key = 1"
+            )
+        except psycopg.Error as error:
+            rejected = error.sqlstate
+        else:
+            raise ValueError
+        conn.execute("ROLLBACK TO SAVEPOINT illegal")
+        status_after = conn.execute(
+            "SELECT status FROM lab.module_03_status WHERE order_key = 1"
+        ).fetchone()[0]
+        audit_after = conn.execute(
+            """SELECT old_status, new_status FROM lab.module_03_status_audit
+               WHERE order_key = 1 ORDER BY audit_id"""
+        ).fetchall()
+        conn.execute("SAVEPOINT extra")
+        conn.execute(
+            "INSERT INTO lab.module_03_status (order_key, status) VALUES (2, 'PENDING')"
+        )
+        conn.execute(
+            "UPDATE lab.module_03_status SET status = 'PAID' WHERE order_key = 2"
+        )
+        extra_audit = conn.execute(
+            "SELECT count(*) FROM lab.module_03_status_audit WHERE order_key = 2"
+        ).fetchone()[0]
+        conn.execute("ROLLBACK TO SAVEPOINT extra")
+        extra_left = conn.execute(
+            """SELECT (SELECT count(*) FROM lab.module_03_status WHERE order_key = 2)
+                    + (SELECT count(*) FROM lab.module_03_status_audit WHERE order_key = 2)"""
+        ).fetchone()[0]
+        conn.execute(
+            """INSERT INTO lab.module_03_line_entry (line_id, sku, quantity)
+               VALUES (1, 'SKU-NVME-2TB', 1)"""
+        )
+        landed = conn.execute(
+            "SELECT sku, quantity FROM lab.module_03_lines WHERE line_id = 1"
+        ).fetchone()
+    legal = status == "PAID" and audit == [("PENDING", "PAID")]
+    rejected_clean = rejected == "P0001" and status_after == "PAID" and audit_after == audit
+    rolled_back = extra_audit == 1 and extra_left == 0
+    inserted = landed == ("SKU-NVME-2TB", 1)
+    if not (legal and rejected_clean and rolled_back and inserted):
+        raise ValueError
+    return {
+        "legal_transition_applied": True,
+        "illegal_transition_rejected": True,
+        "audit_row_written": True,
+        "rejected_update_wrote_no_audit": True,
+        "trigger_work_rolls_back": True,
+        "instead_of_insert_landed": True,
+    }
+
+
 _EXPERIMENTS = {"commit_rollback": _commit_rollback, "savepoints": _savepoints,
                 "isolation": _isolation, "locking": _locking, "serializable": _serializable,
-                "planner": _planner}
+                "planner": _planner, "triggers": _triggers}
 
 
 def run_experiment(config: Config, approval: Approval, name: str) -> dict:
@@ -825,7 +1007,10 @@ def report_json(report: dict) -> str:
                 "repeatable_read_invariant_violated", "invariant_preserved",
                 "nested_loop", "hash_join", "merge_join", "buffers_reported",
                 "tuple_version_changed", "gin_index", "vacuum_completed",
-                "live_row_survived"}
+                "live_row_survived", "legal_transition_applied",
+                "illegal_transition_rejected", "audit_row_written",
+                "rejected_update_wrote_no_audit", "trigger_work_rolls_back",
+                "instead_of_insert_landed"}
     numbers = {"integer_division", "orders_with_items", "order_item_count",
                "positive_price_count", "ranked_order_count", "retry_attempts",
                "deadlock_timeout", "lock_timeout", "statement_timeout",

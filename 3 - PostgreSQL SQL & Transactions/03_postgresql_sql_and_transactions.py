@@ -112,6 +112,16 @@ def _(mo):
     tuple version behind; `VACUUM` reclaims that dead version and keeps the
     live row. `lab.module_03_category_totals` is a materialized view of product
     categories, replaced with `REFRESH MATERIALIZED VIEW`.
+
+    ## 3.11 Triggers
+    Submit **Triggers** after provisioning. The action writes only in `lab`.
+    A `BEFORE UPDATE` trigger allows `PENDING` to `PAID`, `PAID` to `SHIPPED`,
+    `PAID` to `CANCELLED`, and `PENDING` to `CANCELLED`. The change from `PAID`
+    back to `PENDING` raises and is contained with a savepoint. An `AFTER UPDATE`
+    trigger records the legal change in `lab.module_03_status_audit` and writes
+    nothing for the rejected change. A second change inside a savepoint rolls
+    back with its audit row. `INSTEAD OF INSERT` on `lab.module_03_line_entry`
+    writes `lab.module_03_lines`.
     """)
     return
 
@@ -129,6 +139,25 @@ flowchart TD
     nestedLoop --> buffers["Buffers: shared hits and reads"]
     hashJoin --> buffers
     mergeJoin --> buffers
+"""),
+    ])
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.vstack([
+        mo.md("### Trigger work inside the statement"),
+        mo.mermaid("""
+flowchart TD
+    updateStatus[UPDATE status]
+    updateStatus --> beforeUpdate[BEFORE UPDATE]
+    beforeUpdate -->|legal| statusRow[status row]
+    beforeUpdate -->|illegal| savepoint[savepoint restores the statement]
+    statusRow --> afterUpdate[AFTER UPDATE]
+    afterUpdate --> auditRow[audit row]
+    insertView[INSERT on the lab view] --> insteadOf[INSTEAD OF INSERT]
+    insteadOf --> lineTable[lab.module_03_lines]
 """),
     ])
     return
@@ -205,6 +234,7 @@ def _(Path, lab, mo):
                      "Isolation snapshots": "isolation", "Row locks": "locking",
                      "Serializable": "serializable",
                      "Planner, GIN, and refresh": "planner",
+                     "Triggers": "triggers",
                      "Cleanup one run": "cleanup"},
             value="Read-only SQL examples", label="Action"),
         "run_id": mo.ui.text(label="Run UUID (cleanup only)"),

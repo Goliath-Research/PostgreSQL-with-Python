@@ -31,6 +31,8 @@ After completing the module, you should be able to:
 9. Read `EXPLAIN (ANALYZE, BUFFERS)`, name the join node PostgreSQL chose, and
    explain a lab-schema `GIN` index, a materialized view refresh, and what
    `VACUUM` reclaims.
+10. Explain a status-transition trigger, an audit row written by the update,
+    and an `INSTEAD OF INSERT` trigger on a lab view.
 
 ## Section summary
 
@@ -46,6 +48,7 @@ After completing the module, you should be able to:
 | 3.8 | Serializable | Write skew, 40001, bounded whole-transaction retry |
 | 3.9 | Evidence, cleanup, assessment | Redacted results and separately authorized cleanup |
 | 3.10 | Plans, GIN, vacuum, materialized view | Join node and buffer lines; lab-only index and refresh |
+| 3.11 | Triggers | Legal status change, audit row, and a view insert |
 
 ## Preparation
 
@@ -217,7 +220,9 @@ Only opt in against a separately created, bootstrapped and migrated disposable
 PostgreSQL 18 instance, never an ordinary course database. The test creates lab
 objects if absent and commits synthetic runs; its cleanup removes only the run
 UUIDs it created, not the lab table itself. The planner action also leaves
-`lab.module_03_search` and `lab.module_03_category_totals`. A skipped integration test does not
+`lab.module_03_search` and `lab.module_03_category_totals`. The triggers action
+leaves `lab.module_03_status`, `lab.module_03_status_audit`,
+`lab.module_03_lines`, and `lab.module_03_line_entry`. A skipped integration test does not
 verify PostgreSQL behavior.
 
 ## 3.10 Plans, GIN, vacuum, and a materialized view
@@ -262,6 +267,45 @@ on the buffer pool or WAL.
 Course 1 pointed at this as the PostgreSQL place to keep an expensive report
 when a slightly older copy is acceptable. SQLite has no equivalent command.
 
+## 3.11 Triggers
+
+Submit **Triggers** after the lab table exists. The action creates its objects
+only in `lab`, so the Module 2 schema contract stays intact. A grant still
+decides whether the role may update the table. The trigger decides whether
+this status change is legal.
+
+`lab.module_03_status` starts at `PENDING`. A `BEFORE UPDATE` trigger allows
+`PENDING` to `PAID`, `PAID` to `SHIPPED`, `PAID` to `CANCELLED`, and
+`PENDING` to `CANCELLED`. The change from `PAID` back to `PENDING` raises.
+That statement is contained with a savepoint, the same mechanism as section
+3.5, and the status stays `PAID`.
+
+```mermaid
+flowchart TD
+    updateStatus[UPDATE status]
+    updateStatus --> beforeUpdate[BEFORE UPDATE]
+    beforeUpdate -->|legal| statusRow[status row]
+    beforeUpdate -->|illegal| savepoint[savepoint restores the statement]
+    statusRow --> afterUpdate[AFTER UPDATE]
+    afterUpdate --> auditRow[audit row]
+    insertView[INSERT on the lab view] --> insteadOf[INSTEAD OF INSERT]
+    insteadOf --> lineTable[lab.module_03_lines]
+```
+
+An `AFTER UPDATE` trigger writes `lab.module_03_status_audit` when the status
+changes. The rejected update writes no audit row. A later savepoint changes a
+second row and then rolls back to that savepoint, so the audit row from that
+change disappears with it. Trigger writes belong to the surrounding
+transaction.
+
+`INSTEAD OF INSERT` on `lab.module_03_line_entry` writes
+`lab.module_03_lines`. That view is created for this exercise.
+
+Each trigger function reads `NEW` and `OLD`, or `NEW` for the insert, and
+returns the row. `REFRESH MATERIALIZED VIEW` replaces a stored report on
+purpose. A trigger that maintains a counter would hide that write inside
+every update.
+
 ### Assessment rubric
 
 | Criterion | Evidence |
@@ -272,6 +316,7 @@ when a slightly older copy is acceptable. SQLite has no equivalent command.
 | Concurrency | Explains two snapshots, 55P03, actual 40P01 and lock ordering |
 | Serializable | Names invariant, 40001 and full retry with a possible rejected decision |
 | Plans and refresh | Names the join node and buffer line; explains GIN, vacuum, and the lab view |
+| Triggers | Explains the legal transition, the audit row, the rolled-back trigger write, and the view insert |
 | Operational safety | Distinguishes pass/skip/block, protects credentials and scopes cleanup |
 
 ### Troubleshooting and limitations
@@ -291,6 +336,7 @@ when a slightly older copy is acceptable. SQLite has no equivalent command.
 ### References
 
 * [PostgreSQL 18 EXPLAIN](https://www.postgresql.org/docs/18/sql-explain.html)
+* [PostgreSQL 18 triggers](https://www.postgresql.org/docs/18/trigger-definition.html)
 * [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html)
 * [PostgreSQL 18 explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html)
 * [PostgreSQL 18 serialization failure handling](https://www.postgresql.org/docs/18/mvcc-serialization-failure-handling.html)
