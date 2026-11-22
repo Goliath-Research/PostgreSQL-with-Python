@@ -58,7 +58,7 @@ Marimo / Python ──► Psycopg 3 / DuckDB / SQLAlchemy
                         │
                 Host + Port + Authentication
                         ▼
-               PostgreSQL Server (18)
+               PostgreSQL Server (19)
                         │
            Database (goliath_ecommerce)
               ├── Schema: commerce (Module 2 business tables)
@@ -69,9 +69,10 @@ Marimo / Python ──► Psycopg 3 / DuckDB / SQLAlchemy
 - **Why changing a connection string is not a migration:** Simply swapping `sqlite3.connect(...)` for `psycopg.connect(...)` does not create roles, configure schema ownership, enforce least-privilege access, or map SQLite dynamic typing (`typeof(...)`) to strict PostgreSQL native types (`TIMESTAMPTZ`, `NUMERIC`, identity columns).
 
 ### 1.2 Establish a reproducible laboratory
-The primary laboratory uses `compose.yaml` with `postgres:18-bookworm` (and supports native PostgreSQL 18 installations):
-- **PostgreSQL 18 Image Tag:** Uses `postgres:18-bookworm` rather than `postgres:latest`. This is a floating-minor tag, not an exact release pin; use a tested exact tag (and verified digest for controlled releases) when exact image reproducibility is required.
-- **Named Data Volume (`goliath_pgdata`):** Persists `/var/lib/postgresql` across container restarts. PostgreSQL 18 keeps its data directory at `/var/lib/postgresql/18/docker`.
+The primary laboratory uses `compose.yaml` with `postgres:19-bookworm` (and supports native PostgreSQL 19 installations; PostgreSQL 18 servers are still accepted by every module's version check):
+- **PostgreSQL 19 Image Tag:** Uses `postgres:19-bookworm` rather than `postgres:latest`. This is a floating-minor tag, not an exact release pin; use a tested exact tag (and verified digest for controlled releases) when exact image reproducibility is required.
+- **Named Data Volume (`goliath_pgdata`):** Persists `/var/lib/postgresql` across container restarts. PostgreSQL 19 keeps its data directory at `/var/lib/postgresql/19/docker`. A volume created by the earlier `postgres:18-bookworm` image holds its cluster in `/var/lib/postgresql/18/docker`; the PostgreSQL 19 image does not upgrade it. See the README section *Upgrading an existing PostgreSQL 18 volume*.
+- **Version Check:** The notebook's readiness report requires `180000 <= server_version_num < 200000` (PostgreSQL 18 or 19), the same range enforced by Modules 2–4.
 - **Localhost-Only Port Publishing:** `"127.0.0.1:${PG_HOST_PORT:-54329}:5432"` binds the host port exclusively to the loopback interface (`127.0.0.1`), preventing accidental exposure on local Wi-Fi or LAN networks.
 - **Health/Readiness Check:** Runs `pg_isready -U postgres -d goliath_ecommerce` so tools can distinguish "container started" from "PostgreSQL ready to accept connections."
 - **Normal Shutdown vs. Destructive Reset:**
