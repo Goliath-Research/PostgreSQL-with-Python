@@ -196,7 +196,7 @@ def _retry_serialization(error: Exception, attempt: int, limit: int = 3) -> bool
 
 
 def preflight(config: Config) -> dict:
-    """Read-only identity, PostgreSQL 18, ownership, schema and privilege checks."""
+    """Read-only identity, PostgreSQL 19 (or 18), ownership, schema and privilege checks."""
     check = "database"
     try:
         if config.database != "goliath_ecommerce":
@@ -211,7 +211,7 @@ def preflight(config: Config) -> dict:
                               NOT (rolsuper OR rolcreatedb OR rolcreaterole OR rolreplication OR rolbypassrls)
                        FROM pg_catalog.pg_roles WHERE rolname = current_user"""
                 ).fetchone()
-                if not (180000 <= version < 190000 and database == config.database
+                if not (180000 <= version < 200000 and database == config.database
                         and session == current == role and safe):
                     raise ValueError
                 inherit, owner_member, migrator_member = conn.execute(
@@ -271,7 +271,7 @@ def preflight(config: Config) -> dict:
                             if conn.execute("SELECT has_table_privilege(current_user,%s,%s)",
                                             (relation, privilege)).fetchone()[0]:
                                 raise ValueError
-        return {"ok": True, "checks": "PostgreSQL 18, identities, ownership, commerce schema and access"}
+        return {"ok": True, "checks": "PostgreSQL 19 (or 18), identities, ownership, commerce schema and access"}
     except Exception as error:
         return {"ok": False, "check": check, **_failure(error)}
 
@@ -1027,7 +1027,7 @@ def report_json(report: dict) -> str:
         "retry_decision": {"debit", "decline"}, "integer_type": {"integer"},
         "numeric_division": {"2.5"},
         "hypothetical_new_york_noon_utc": {"2024-01-15T17:00:00"},
-        "checks": {"PostgreSQL 18, identities, ownership, commerce schema and access"},
+        "checks": {"PostgreSQL 19 (or 18), identities, ownership, commerce schema and access"},
         "check": {"database", "course_migrator", "course_app", "course_analyst"},
     }
 

@@ -39,7 +39,7 @@ def _(mo):
 
     ## 3.1 Readiness and read-only SQL
     Module 1 and Module 2 must **actually** be ready: preflight checks
-    PostgreSQL 18, the course roles, ownership, six relations and access.
+    PostgreSQL 19 (or 18), the course roles, ownership, six relations and access.
     Configure and submit preflight below; a merged PR is not proof of readiness.
     `orders.ordered_at` has no timezone; amounts are integer cents.
     Order-item and catalog-observation keys have distinct meanings.

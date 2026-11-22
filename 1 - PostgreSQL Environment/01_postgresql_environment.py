@@ -581,7 +581,7 @@ def _( redact_text):
                 )
 
         return {
-            "ok": len(errors) == 0 and len(sessions) == 2 and server_version_num >= 180000,
+            "ok": len(errors) == 0 and len(sessions) == 2 and 180000 <= server_version_num < 200000,
             "server_version": server_version,
             "server_version_num": server_version_num,
             "sessions": sessions,
@@ -919,7 +919,7 @@ def _(
         {"check": "1. Required Python packages available (marimo, psycopg, python-dotenv)", "passed": _deps_ok, "detail": "All installed" if _deps_ok else "Missing package(s)"},
         {"check": "2. Configuration validator & secret redactor self-tests", "passed": _self_tests_ok, "detail": "Invalid port rejected; passwords redacted"},
         {"check": "3. Server reachable", "passed": _diag_ok, "detail": f"Connected to {lab_config['host']}:{lab_config['port']}" if _diag_ok else "Run connection diagnostics"},
-        {"check": "4. Server version recorded (PostgreSQL 18+ required)", "passed": bool(diag_result and int(diag_result.get("server_version_num") or 0) >= 180000), "detail": str(diag_result.get("server_version")) if diag_result and diag_result.get("server_version") else "Pending connection (requires PostgreSQL >= 18)"},
+        {"check": "4. Server version recorded (PostgreSQL 19 or 18 required)", "passed": bool(diag_result and 180000 <= int(diag_result.get("server_version_num") or 0) < 200000), "detail": str(diag_result.get("server_version")) if diag_result and diag_result.get("server_version") else "Pending connection (requires PostgreSQL 19 or 18)"},
         {"check": "5. Intended database and login identities verified", "passed": _diag_ok, "detail": f"Database={lab_config['database']}, roles={lab_config['app_user']}, {lab_config['analyst_user']}" if _diag_ok else "Pending connection"},
         {"check": "6. Expected schemas (commerce, lab) present and owned by course_owner", "passed": _schemas_ok, "detail": f"Found: {_schemas_found}" if _schemas_found else "Pending connection"},
         {"check": "7. Application probe read/write successful (rollback-only)", "passed": _app_rw_ok, "detail": "Tests 1 & 2 passed" if _app_rw_ok else "Run access-control tests"},

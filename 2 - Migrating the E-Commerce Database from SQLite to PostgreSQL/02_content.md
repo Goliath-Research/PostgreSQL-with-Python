@@ -54,7 +54,7 @@ Use Python 3.11 or later with the dependencies declared in the script:
 python -m pip install "marimo>=0.11,<1" "psycopg[binary]>=3.2,<4" "python-dotenv>=1,<2"
 ```
 
-The target guard requires PostgreSQL 18 specifically: `180000 <= server_version < 190000`. It does not accept PostgreSQL 17 or claim PostgreSQL 19 compatibility.
+The course standard is PostgreSQL 19. The target guard accepts the PostgreSQL 18 and 19 release series: `180000 <= server_version < 200000`. It does not accept PostgreSQL 17 or claim compatibility with an unreviewed PostgreSQL 20.
 
 Module 1 must already have provisioned `goliath_ecommerce`, the course roles, and `commerce` owned by `course_owner`. Its actual runtime checks must pass. A merged PR or a successful server healthcheck alone is not migration readiness. Module 2 does not repair container volumes, create bootstrap roles, rotate existing credentials, or reset the database.
 
@@ -209,7 +209,7 @@ All three role passwords are required, even though the first target connection u
 
 Inside an explicitly read-only transaction, preflight checks:
 1. The actual database, session user, and effective user are the expected migration identity.
-2. The server belongs to the PostgreSQL 18 release series.
+2. The server belongs to the PostgreSQL 19 (or 18) release series.
 3. The four roles exist with expected login flags and without the inspected administrative attributes.
 4. Application and analyst roles are not members of the owner or migrator roles.
 5. The migrator has `NOINHERIT`.
@@ -367,5 +367,5 @@ Module 3 can build on a verified PostgreSQL target to study PostgreSQL SQL behav
 - Local source contract/provenance: `fixtures/intro_ecommerce/README.md`
 - Python SQLite connection and backup APIs: https://docs.python.org/3/library/sqlite3.html
 - Psycopg transaction management: https://www.psycopg.org/psycopg3/docs/basic/transactions.html
-- PostgreSQL identity columns: https://www.postgresql.org/docs/18/ddl-identity-columns.html
-- PostgreSQL sequence behavior: https://www.postgresql.org/docs/18/functions-sequence.html
+- PostgreSQL identity columns: https://www.postgresql.org/docs/19/ddl-identity-columns.html
+- PostgreSQL sequence behavior: https://www.postgresql.org/docs/19/functions-sequence.html

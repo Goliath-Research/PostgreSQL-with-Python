@@ -152,7 +152,7 @@ FROM line_sample"""
                     True,
                 ) or not 180000 <= pg_version < 200000:
                     raise LabError(
-                        "Expected PostgreSQL 18+, goliath_ecommerce, course_analyst and a read-only transaction."
+                        "Expected PostgreSQL 19 (or 18), goliath_ecommerce, course_analyst and a read-only transaction."
                     )
                 stage = "attached scan (check that Module 2 migrated order_items and granted SELECT)"
                 plan = "\n".join(
