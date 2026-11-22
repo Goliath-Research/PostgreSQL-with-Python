@@ -3,7 +3,7 @@
 **Hosted lab architecture and operator requirements:** [HOSTED_LABS.md](HOSTED_LABS.md) — current execution modes, security boundaries, and outstanding hosting work.
 
 **Institution:** Goliath Research Academy  
-**Delivery Format:** Interactive Marimo Reactive Notebooks (`.py`), Module Reference Guides (`*_content.md`), Reproducible PostgreSQL 18 Laboratory (`compose.yaml`), DuckDB 2.0, SQLAlchemy 2.0, and Automated Verification Suites  
+**Delivery Format:** Interactive Marimo Reactive Notebooks (`.py`), Module Reference Guides (`*_content.md`), Reproducible PostgreSQL 19 Laboratory (`compose.yaml`), DuckDB 2.0, SQLAlchemy 2.0, and Automated Verification Suites  
 **Prerequisites:** Completion of [SQLite with Python: Relational Database Foundations](https://github.com/Goliath-Research/SQLite-with-Python) (8-module SQLite course); Python 3.11+, SQL fundamentals, and basic terminal usage.
 
 ---
@@ -120,7 +120,10 @@ PostgreSQL-with-Python/
 └── 11 - MCP Servers over PostgreSQL & DuckDB/
 ```
 
-### Primary Path: Containerized PostgreSQL 18 Laboratory
+### Supported PostgreSQL Versions
+PostgreSQL **19** is the course standard, and `compose.yaml` runs `postgres:19-bookworm`. Every module's version check accepts `180000 <= server_version_num < 200000`, so an existing PostgreSQL 18 server keeps working; PostgreSQL 17 and the not-yet-reviewed PostgreSQL 20 are rejected. Nothing in the course depends on a PostgreSQL 19-only feature, but Module 3 notes the 19 defaults it touches (`log_lock_waits` on, JIT off).
+
+### Primary Path: Containerized PostgreSQL 19 Laboratory
 1. **Create your local `.env` configuration from the template:**
    ```bash
    cp .env.example .env
@@ -142,13 +145,52 @@ PostgreSQL-with-Python/
      docker compose down -v
      ```
 
+### Upgrading an existing PostgreSQL 18 volume
+If `goliath_pgdata` was created when this file used `postgres:18-bookworm`, changing the image tag does **not** upgrade it. The data lives in `/var/lib/postgresql/18/docker`, and the PostgreSQL 19 image refuses to start (`docker compose logs postgres` shows "there appears to be PostgreSQL data in: /var/lib/postgresql/18/docker") and keeps restarting. Choose one path. Commands assume the default `POSTGRES_USER=postgres` and run from the repository root.
+
+* **Nothing to keep:** `docker compose down -v`, then `docker compose up -d` and repeat the Module 1 checks and Module 2 migration.
+* **Keep your data:** first stop the lab and copy the volume to a backup:
+  ```bash
+  docker compose down
+  docker volume create goliath_pgdata_pg18
+  docker run --rm -v goliath_pgdata:/from -v goliath_pgdata_pg18:/to postgres:19-bookworm cp -a /from/. /to/
+  ```
+  **Option A: dump and restore (recommended).** Dump the backup copy with the PostgreSQL 19 `pg_dumpall`, recreate `goliath_pgdata` as an empty PostgreSQL 19 cluster *without* the bootstrap scripts (the dump already contains the roles, passwords, schemas, and grants), and restore. Keep the dump outside the repository: it contains password hashes and customer rows. The only expected restore error is `role "postgres" already exists`.
+  ```bash
+  docker run -d --rm --name goliath_pg18_dump -v goliath_pgdata_pg18:/var/lib/postgresql postgres:18-bookworm
+  until docker exec goliath_pg18_dump pg_isready -q -h 127.0.0.1 -U postgres; do sleep 1; done
+  docker run --rm --network container:goliath_pg18_dump postgres:19-bookworm \
+    pg_dumpall -h 127.0.0.1 -U postgres > ~/goliath_pg18_dumpall.sql
+  docker stop goliath_pg18_dump
+
+  docker volume rm goliath_pgdata
+  docker compose create
+  docker run -d --rm --name goliath_pg19_restore -e POSTGRES_PASSWORD=restore_only -e TZ=UTC -e PGTZ=UTC \
+    -v goliath_pgdata:/var/lib/postgresql postgres:19-bookworm
+  until docker exec goliath_pg19_restore pg_isready -q -h 127.0.0.1 -U postgres; do sleep 1; done
+  docker exec -i goliath_pg19_restore psql -X -q -U postgres -d postgres < ~/goliath_pg18_dumpall.sql
+  docker stop goliath_pg19_restore
+  docker compose up -d --wait
+  ```
+  **Option B: `pg_upgrade`.** The official image ships only one major version, so this uses the community [`tianon/postgres-upgrade`](https://github.com/tianon/docker-postgres-upgrade) image. Its run prints collation-version warnings because it is built on Debian trixie; the upgraded cluster keeps bookworm's collation version and runs cleanly under `postgres:19-bookworm`. The new cluster needs the old `pg_hba.conf` (otherwise host connections are rejected), and the PostgreSQL 19 image will not start until the old cluster directory is gone.
+  ```bash
+  docker run --rm -v goliath_pgdata:/var/lib/postgresql tianon/postgres-upgrade:18-to-19 --link
+  docker run --rm -v goliath_pgdata:/var/lib/postgresql postgres:19-bookworm bash -c \
+    'cp -p /var/lib/postgresql/18/docker/pg_hba.conf /var/lib/postgresql/19/docker/ && rm -rf /var/lib/postgresql/18 /var/lib/postgresql/delete_old_cluster.sh'
+  docker compose up -d --wait
+  docker compose exec postgres vacuumdb -U postgres --all --analyze-in-stages --missing-stats-only
+  ```
+  Afterwards, rerun the Module 1 readiness checks and the Module 3 preflight. When they pass, remove the backup with `docker volume rm goliath_pgdata_pg18` (and delete any dump file). To stay on PostgreSQL 18 for now instead, put `services: {postgres: {image: "postgres:18-bookworm"}}` in an uncommitted `compose.override.yaml`; Compose merges it automatically.
+
 ### Per-student lab session
 Modules 1–10 call `course_lab.attach()` when the notebook opens. That starts a private Compose project (`compose.learner.yaml`) for the current operating-system user, or reuses the one already running. Later modules share that database. **Leave the lab** in the notebook, or run `python -m course_lab leave`, deletes only that student's volume. An operator can release idle sessions with `python -m course_lab reap --idle-hours 12`.
 
 The single-user `compose.yaml` lab on port `54329` is separate. Set `COURSE_LAB_AUTOSTART=0` before opening a notebook to keep using that lab and skip the private project. Module 11 does not request a database.
 
-### Alternative Path: Native PostgreSQL 18 Installation
-If you run a local native PostgreSQL 18 server instead of Docker:
+The private session image is also `postgres:19-bookworm`. A student whose session volume was created under PostgreSQL 18 will see the PostgreSQL 19 container fail to start; run `python -m course_lab leave` to delete that session volume, then reopen a notebook to create a fresh PostgreSQL 19 one (re-run the Module 2 migration afterward).
+
+### Alternative Path: Native PostgreSQL 19 Installation
+If you run a local native PostgreSQL 19 server (PostgreSQL 18 is also accepted) instead of Docker:
 1. Ensure PostgreSQL is listening solely on `127.0.0.1` and update `PGPORT` in `.env` to match your local port.
 2. Create the `goliath_ecommerce` database as a superuser (`createdb -U postgres goliath_ecommerce`).
 3. Execute the bootstrap scripts in order:

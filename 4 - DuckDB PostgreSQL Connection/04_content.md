@@ -27,7 +27,7 @@ Dependencies are native Python with Marimo, DuckDB, Psycopg 3 (for building a li
 
 Use your repository-root `.env` with `PGHOST`, `PGPORT`, `PGDATABASE=goliath_ecommerce`, `COURSE_ANALYST_USER=course_analyst`, and `COURSE_ANALYST_PASSWORD`. Environment variables override the file. The default port is 54329; use your actual port for a native server. `PGSSLMODE` and `PGSSLROOTCERT` can configure TLS; for a remote connection, use a verified TLS policy appropriate to the deployment. Leave credentials out of Git and screenshots. Run against the course database, not production.
 
-This notebook expects PostgreSQL 18 and migrated Module 2 data. In a hosted lab the browser is the editor; the native Python kernel and DuckDB extension run outside the browser and reach the learner's private PostgreSQL instance. This is not a browser-WASM notebook. See the course's `HOSTED_LABS.md`.
+This notebook expects PostgreSQL 19 (PostgreSQL 18 is also accepted) and migrated Module 2 data. In a hosted lab the browser is the editor; the native Python kernel and DuckDB extension run outside the browser and reach the learner's private PostgreSQL instance. This is not a browser-WASM notebook. See the course's `HOSTED_LABS.md`.
 
 ## 4.1 Load and attach
 

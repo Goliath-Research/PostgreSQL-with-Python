@@ -65,7 +65,7 @@ Module 2 must have actually migrated its six business tables. Neither a merged P
 nor a listening server proves readiness. Configure `.env` as described in Module 1.
 The loader uses `dotenv_values(..., interpolate=False)` and process environment
 variables override the file. Password whitespace is significant. The module
-requires PostgreSQL 18 and `goliath_ecommerce`; it does not repair bootstrap,
+requires PostgreSQL 19 (PostgreSQL 18 is also accepted) and `goliath_ecommerce`; it does not repair bootstrap,
 change passwords, or substitute a superuser if a role cannot log in.
 
 The notebook locates its helper relative to its own file, including when its
@@ -179,6 +179,12 @@ this opposite-order cycle; it is not a guarantee against every possible deadlock
 The helper inspects `deadlock_timeout`, `lock_timeout` and `statement_timeout`
 before the deadlock test and refuses to call a timeout a successful deadlock.
 
+PostgreSQL 19 turns `log_lock_waits` on by default (it was off in 18). A session
+that waits longer than `deadlock_timeout` for a lock now writes a "still waiting
+for ShareLock" line to the server log, so the deadlock exercise leaves entries in
+`docker compose logs postgres`. That is expected evidence of the wait, not an
+extra failure; what the client receives (`55P03`, `40P01`) is unchanged.
+
 ## 3.8 Serializable and retry
 
 Consider two accounts each with 100 cents and the invariant that their sum is
@@ -217,7 +223,7 @@ The integration test is skipped unless `MODULE03_DISPOSABLE` is exactly
 `MODULE03_DISPOSABLE_PORT` on localhost and `MODULE03_MIGRATOR_PASSWORD`,
 `MODULE03_APP_PASSWORD`, and `MODULE03_ANALYST_PASSWORD` in the environment.
 Only opt in against a separately created, bootstrapped and migrated disposable
-PostgreSQL 18 instance, never an ordinary course database. The test creates lab
+PostgreSQL 19 (or 18) instance, never an ordinary course database. The test creates lab
 objects if absent and commits synthetic runs; its cleanup removes only the run
 UUIDs it created, not the lab table itself. The planner action also leaves
 `lab.module_03_search` and `lab.module_03_category_totals`. The triggers action
@@ -251,7 +257,14 @@ flowchart TD
 `Merge Join` walks two inputs that are ordered on the join key. `BUFFERS`
 reports how many blocks came from cache (`hit`) and how many were read. The
 redacted evidence records which of those node names appeared and that a
-buffer line was present. It does not treat one node as the winner.
+buffer line was present. It does not treat one node as the winner; PostgreSQL 18
+and 19 can choose differently for the same data, because the 19 planner gained
+new join and anti-join transformations.
+
+PostgreSQL 19 also disables JIT compilation by default (`jit = off`). On 18, an
+expensive enough plan could end with a `JIT:` section; on 19 it does not unless
+you `SET jit = on`. This small fixture never reaches the JIT cost threshold on
+either version, so the exercise output is the same.
 
 `lab.module_03_search.doc` is `jsonb`. A `GIN` index supports containment
 lookups on that document. The index is not added to a `commerce` table.
@@ -335,9 +348,11 @@ every update.
 
 ### References
 
-* [PostgreSQL 18 EXPLAIN](https://www.postgresql.org/docs/18/sql-explain.html)
-* [PostgreSQL 18 triggers](https://www.postgresql.org/docs/18/trigger-definition.html)
-* [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html)
-* [PostgreSQL 18 explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html)
-* [PostgreSQL 18 serialization failure handling](https://www.postgresql.org/docs/18/mvcc-serialization-failure-handling.html)
+* [PostgreSQL 19 EXPLAIN](https://www.postgresql.org/docs/19/sql-explain.html)
+* [PostgreSQL 19 triggers](https://www.postgresql.org/docs/19/trigger-definition.html)
+* [PostgreSQL 19 transaction isolation](https://www.postgresql.org/docs/19/transaction-iso.html)
+* [PostgreSQL 19 explicit locking](https://www.postgresql.org/docs/19/explicit-locking.html)
+* [PostgreSQL 19 serialization failure handling](https://www.postgresql.org/docs/19/mvcc-serialization-failure-handling.html)
+* [PostgreSQL 19 lock-wait logging (`log_lock_waits`)](https://www.postgresql.org/docs/19/runtime-config-logging.html)
+* [PostgreSQL 19 JIT decision](https://www.postgresql.org/docs/19/jit-decision.html)
 * [Psycopg 3 transaction management](https://www.psycopg.org/psycopg3/docs/basic/transactions.html)

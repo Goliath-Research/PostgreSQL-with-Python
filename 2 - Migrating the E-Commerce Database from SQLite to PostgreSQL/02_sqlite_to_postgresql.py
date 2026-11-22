@@ -280,7 +280,7 @@ def _():
         def guard_target(conn):
             require(conn.execute("SELECT current_database(),session_user,current_user").fetchone() ==
                     ("goliath_ecommerce", "course_migrator", "course_migrator"), "Unexpected migration database/login/effective identity")
-            require(180000 <= conn.info.server_version < 190000, "This draft requires PostgreSQL 18")
+            require(180000 <= conn.info.server_version < 200000, "This draft requires PostgreSQL 19 (or 18)")
             for role in ("course_migrator", "course_app", "course_analyst", "course_owner"):
                 flags = conn.execute("SELECT rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls,rolcanlogin FROM pg_roles WHERE rolname=%s", (role,)).fetchone()
                 require(flags is not None and not any(flags[:5]) and flags[5] == (role != "course_owner"), "Unexpected administrative attributes/login flags")
@@ -534,7 +534,7 @@ def _(mo, migration, show_ddl):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md('## 2.3 Configure the target and run read-only preflight\nUses existing PGHOST, PGPORT, PGDATABASE, PGCONNECT_TIMEOUT and the three COURSE_* credentials.\nPGSSLMODE (default prefer) and optional PGSSLROOTCERT are supported. Prefer is a local-lab setting,\nnot authenticated TLS; use a verified certificate policy remotely. Environment overrides .env without\ninterpolating secrets or trimming password whitespace. Never share .env, runtime variable inspectors,\nor raw driver exceptions. This notebook displays no password-bearing connection URL.\n\nPreflight verifies PostgreSQL 18, the course database, role attributes/memberships, owner access,\nand an empty commerce schema. It uses SET TRANSACTION READ ONLY. Source/configuration changes reset\nsubsequent authorization widgets. Re-submit preflight after changing environment files.\n')
+    mo.md('## 2.3 Configure the target and run read-only preflight\nUses existing PGHOST, PGPORT, PGDATABASE, PGCONNECT_TIMEOUT and the three COURSE_* credentials.\nPGSSLMODE (default prefer) and optional PGSSLROOTCERT are supported. Prefer is a local-lab setting,\nnot authenticated TLS; use a verified certificate policy remotely. Environment overrides .env without\ninterpolating secrets or trimming password whitespace. Never share .env, runtime variable inspectors,\nor raw driver exceptions. This notebook displays no password-bearing connection URL.\n\nPreflight verifies PostgreSQL 19 (or 18), the course database, role attributes/memberships, owner access,\nand an empty commerce schema. It uses SET TRANSACTION READ ONLY. Source/configuration changes reset\nsubsequent authorization widgets. Re-submit preflight after changing environment files.\n')
     return
 
 

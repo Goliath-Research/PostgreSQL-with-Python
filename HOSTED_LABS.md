@@ -104,7 +104,7 @@ configuration**, not production-ready or multi-user-ready. It currently has:
 - Fixed `container_name: goliath_pg_lab`.
 - Explicit named volume `goliath_pgdata`.
 - A default published host port of `54329` (bound to localhost).
-- A PostgreSQL 18 data mount at `/var/lib/postgresql`, the image's volume target. Default `PGDATA` is `/var/lib/postgresql/18/docker`.
+- A PostgreSQL 19 data mount at `/var/lib/postgresql`, the image's volume target. Default `PGDATA` is `/var/lib/postgresql/19/docker`.
 
 Distinct Compose project names do not remove the fixed container-name and
 explicit-volume collisions in `compose.yaml`. `compose.learner.yaml` is the
@@ -120,23 +120,28 @@ Authentication, routing, and a remote sandbox remain outstanding. Do not move
 or reinitialize an existing volume, or point a new image at an old data
 directory, without a backup and a reviewed migration.
 
-## PostgreSQL version policy (November 17, 2026)
+## PostgreSQL version policy (November 22, 2026)
 
-PostgreSQL **18.7** is the released baseline on this date, and the official
-image lists `postgres:18.7-bookworm`. This repository currently uses the
-floating-minor tag `postgres:18-bookworm`; it is not an exact 18.7 pin or an
-image digest. Recommend an exact tested tag for reproducible deployments and,
-for controlled releases, a verified image digest. No digest is configured or
-specified here.
+PostgreSQL **19.0** (released November 19, 2026) is the course standard. This
+repository uses the floating-minor tag `postgres:19-bookworm`; it is not an
+exact 19.0 pin or an image digest. Recommend an exact tested tag (for example
+`postgres:19.0-bookworm`) for reproducible deployments and, for controlled
+releases, a verified image digest. No digest is configured or specified here.
 
-PostgreSQL 19 is at **RC 2**, with general availability planned for November
-19, subject to change. Treat PostgreSQL 19 as a future compatibility target,
-not a supported course runtime: the current Module 2 and Module 3 version
-guards accept PostgreSQL 18 only. Adoption requires reviewing those guards,
-bootstrap behavior, and image volume layout; running populated migration and
-concurrency integration tests; and planning a proper major-version data
-upgrade. Do not point a PostgreSQL 19 image at an existing PostgreSQL 18 data
-directory.
+The Module 1–4 version checks all accept `180000 <= server_version_num <
+200000`, so existing PostgreSQL 18 learner instances (18.7 at the time of
+writing) remain usable during a transition. New learner environments should be
+provisioned on PostgreSQL 19. PostgreSQL 20 is rejected until its guards,
+bootstrap behavior, and image layout have been reviewed and the populated
+migration and concurrency integration tests pass against it.
+
+Do not point a PostgreSQL 19 image at an existing PostgreSQL 18 data
+directory: the image refuses to start while `/var/lib/postgresql/18/docker`
+exists. Upgrade learner storage with a PostgreSQL 19 `pg_dumpall` and restore,
+or with `pg_upgrade`, as described in the README section *Upgrading an existing
+PostgreSQL 18 volume*. PostgreSQL 19 removes RADIUS authentication and warns
+after MD5 password authentication; hosted platforms should use SCRAM, as the
+course bootstrap does.
 
 ## Official references
 
@@ -146,4 +151,5 @@ directory.
 - [PGlite: Multi-tab workers](https://pglite.dev/docs/multi-tab-worker)
 - [Docker Compose: Project name](https://docs.docker.com/compose/how-tos/project-name/)
 - [Official PostgreSQL Docker image](https://hub.docker.com/_/postgres/)
-- [PostgreSQL 18.7 and 19 RC 2 release announcement](https://www.postgresql.org/about/news/postgresql-187-1712-1616-1520-1425-and-19-rc-2-released-3442/)
+- [PostgreSQL 19 release notes: Migration to Version 19](https://www.postgresql.org/docs/19/release-19.html)
+- [PostgreSQL 19: Upgrading a PostgreSQL cluster](https://www.postgresql.org/docs/19/upgrading.html)

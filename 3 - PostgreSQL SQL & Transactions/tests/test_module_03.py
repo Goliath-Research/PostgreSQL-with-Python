@@ -229,7 +229,7 @@ def commerce_fingerprint(config):
     return hashlib.sha256(repr((metadata, signatures)).encode()).hexdigest()
 
 
-def test_disposable_postgres18_end_to_end():
+def test_disposable_postgres_end_to_end():
     config = integration_config()
     assert m.preflight(config)["ok"]
     before = commerce_fingerprint(config)

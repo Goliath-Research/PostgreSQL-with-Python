@@ -95,8 +95,8 @@ def run(path, limit):
             stage = 'attachment or PostgreSQL identity check'
             db.execute('ATTACH ' + sql_string(dsn) + " AS course_pg (TYPE postgres, READ_ONLY, SCHEMA 'commerce')")
             role, database, pg_version, read_only = db.execute(remote(REMOTE)).fetchone()
-            if (role, database, read_only) != ('course_analyst', 'goliath_ecommerce', True) or not 180000 <= pg_version < 190000:
-                raise LabError('Expected PostgreSQL 18, goliath_ecommerce, course_analyst and a read-only transaction.')
+            if (role, database, read_only) != ('course_analyst', 'goliath_ecommerce', True) or not 180000 <= pg_version < 200000:
+                raise LabError('Expected PostgreSQL 19 (or 18), goliath_ecommerce, course_analyst and a read-only transaction.')
             stage = 'attached scan (check that Module 2 migrated order_items and granted SELECT)'
             plan = '\n'.join(str(row[-1]) for row in db.execute('EXPLAIN ' + SCAN).fetchall())
             matching = db.execute(SCAN).fetchone()[0]
