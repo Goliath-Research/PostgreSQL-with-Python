@@ -8,6 +8,40 @@ import marimo
 app = marimo.App(width="medium", app_title="Module 2: SQLite to PostgreSQL Migration")
 
 
+with app.setup(hide_code=True):
+    import sys as _course_sys
+    from pathlib import Path as _CoursePath
+
+    _course_here = _CoursePath.cwd().resolve()
+    for _course_candidate in (_course_here, *_course_here.parents):
+        if (_course_candidate / "course_lab.py").is_file():
+            _course_root = str(_course_candidate)
+            if _course_root not in _course_sys.path:
+                _course_sys.path.insert(0, _course_root)
+            break
+    else:
+        raise RuntimeError("Open this notebook from the course repository.")
+    import course_lab
+
+    if course_lab.autostart_enabled():
+        course_lab.attach()
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    _lab_panel, leave_lab = course_lab.leave_controls(mo)
+    _lab_panel
+    return (leave_lab,)
+
+
+@app.cell(hide_code=True)
+def _(leave_lab, mo):
+    _lab_message = course_lab.release_if_requested(leave_lab.value)
+    mo.stop(_lab_message is None)
+    mo.md(_lab_message)
+    return
+
+
 @app.cell
 def _():
     import json
@@ -18,7 +52,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md('# Module 2: SQLite to PostgreSQL Migration\n## Goliath Research Academy — PostgreSQL with Python\n\nThis initial executable draft migrates the six-table database from the first course.\nIt uses direct sqlite3/Psycopg access; DuckDB 2.0 analytics and SQLAlchemy persistence come later.\nOpening the notebook does not connect to PostgreSQL, build a source database, or change files.\n\n### Before opening\nInstall the notebook dependencies in your Python environment. Place this file in\n`2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/` in the course repository. Create a NEW baseline bundle\nexplicitly from the repository root if you do not already have an authorized live snapshot:\n\n```bash\npython "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/fixtures/intro_ecommerce/8 - Python Database Integration & Capstone/ecommerce_snapshot.py" rebuild "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/fixtures/intro_ecommerce/baseline_bundle"\n```\n\nThe fixture contains only SQLite migration inputs used to build the sample source database; it is not a copy of the introductory course or a backup of student work. The builder refuses an existing destination. A rebuilt baseline is not a saved end-of-course session.\nModule 1\'s actual server/role checks must pass; merging a PR or seeing pg_isready is insufficient.\nThis notebook does not repair PostgreSQL volume layout, bootstrap roles, or rotate credentials.\n\n### Safety boundary\nThe draft supports only the exact pinned Module 8 core schema and its indexes. Module 3 staging tables,\nadditional views/triggers/indexes, or redesigned source schemas are blocked rather than silently omitted.\nIt is a small classroom loader (64 MiB snapshot limit), not a production migration framework.\nPostgreSQL and the Marimo UI still require integration testing before teaching.\n')
+    mo.md('# Module 2: SQLite to PostgreSQL Migration\n## Goliath Research Academy — PostgreSQL with Python\n\nThis initial executable draft migrates the six-table database from the first course.\nIt uses direct sqlite3/Psycopg access; DuckDB 2.0 analytics and SQLAlchemy persistence come later.\nOpening the notebook requests your lab database if you do not already have one. It does not connect on its own, build a source database, or change source files.\n\n### Before opening\nInstall the notebook dependencies in your Python environment. Place this file in\n`2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/` in the course repository. Create a NEW baseline bundle\nexplicitly from the repository root if you do not already have an authorized live snapshot:\n\n```bash\npython "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/fixtures/intro_ecommerce/8 - Python Database Integration & Capstone/ecommerce_snapshot.py" rebuild "2 - Migrating the E-Commerce Database from SQLite to PostgreSQL/fixtures/intro_ecommerce/baseline_bundle"\n```\n\nThe fixture contains only SQLite migration inputs used to build the sample source database; it is not a copy of the introductory course or a backup of student work. The builder refuses an existing destination. A rebuilt baseline is not a saved end-of-course session.\nModule 1\'s actual server/role checks must pass; merging a PR or seeing pg_isready is insufficient.\nThis notebook does not repair PostgreSQL volume layout, bootstrap roles, or rotate credentials.\n\n### Safety boundary\nThe draft supports only the exact pinned Module 8 core schema and its indexes. Module 3 staging tables,\nadditional views/triggers/indexes, or redesigned source schemas are blocked rather than silently omitted.\nIt is a small classroom loader (64 MiB snapshot limit), not a production migration framework.\nPostgreSQL and the Marimo UI still require integration testing before teaching.\n')
     return
 
 

@@ -149,6 +149,9 @@ activemq-data/
 # SageMath parsed files
 *.sage.py
 
+# Per-student lab session records and generated passwords
+.lab-sessions/
+
 # Environments
 .env
 .envrc

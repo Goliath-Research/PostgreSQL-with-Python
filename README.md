@@ -95,6 +95,8 @@ While keeping the e-commerce entities and business questions from the introducto
 ```text
 PostgreSQL-with-Python/
 ├── compose.yaml
+├── compose.learner.yaml
+├── course_lab.py
 ├── .env.example
 ├── .gitignore
 ├── LICENSE
@@ -139,6 +141,11 @@ PostgreSQL-with-Python/
      ```bash
      docker compose down -v
      ```
+
+### Per-student lab session
+Modules 1–10 call `course_lab.attach()` when the notebook opens. That starts a private Compose project (`compose.learner.yaml`) for the current operating-system user, or reuses the one already running. Later modules share that database. **Leave the lab** in the notebook, or run `python -m course_lab leave`, deletes only that student's volume. An operator can release idle sessions with `python -m course_lab reap --idle-hours 12`.
+
+The single-user `compose.yaml` lab on port `54329` is separate. Set `COURSE_LAB_AUTOSTART=0` before opening a notebook to keep using that lab and skip the private project. Module 11 does not request a database.
 
 ### Alternative Path: Native PostgreSQL 18 Installation
 If you run a local native PostgreSQL 18 server instead of Docker:
