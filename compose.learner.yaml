@@ -1,0 +1,32 @@
+# Private lab project for one student. Do not set container_name or a fixed volume
+# name: Compose prefixes both with the project name passed as `docker compose -p`.
+
+services:
+  postgres:
+    image: postgres:19-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-goliath_ecommerce}
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "127.0.0.1:${PG_HOST_PORT:?PG_HOST_PORT is required}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./bootstrap/01_roles_and_database.sql:/docker-entrypoint-initdb.d/01_roles_and_database.sql:ro
+      - ./bootstrap/02_schemas_and_probe.sql:/docker-entrypoint-initdb.d/02_schemas_and_probe.sql:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-goliath_ecommerce}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  pgdata:

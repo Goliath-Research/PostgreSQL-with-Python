@@ -95,6 +95,8 @@ While keeping the e-commerce entities and business questions from the introducto
 ```text
 PostgreSQL-with-Python/
 ├── compose.yaml
+├── compose.learner.yaml
+├── course_lab.py
 ├── .env.example
 ├── .gitignore
 ├── LICENSE
@@ -179,6 +181,13 @@ If `goliath_pgdata` was created when this file used `postgres:18-bookworm`, chan
   docker compose exec postgres vacuumdb -U postgres --all --analyze-in-stages --missing-stats-only
   ```
   Afterwards, rerun the Module 1 readiness checks and the Module 3 preflight. When they pass, remove the backup with `docker volume rm goliath_pgdata_pg18` (and delete any dump file). To stay on PostgreSQL 18 for now instead, put `services: {postgres: {image: "postgres:18-bookworm"}}` in an uncommitted `compose.override.yaml`; Compose merges it automatically.
+
+### Per-student lab session
+Modules 1–10 call `course_lab.attach()` when the notebook opens. That starts a private Compose project (`compose.learner.yaml`) for the current operating-system user, or reuses the one already running. Later modules share that database. **Leave the lab** in the notebook, or run `python -m course_lab leave`, deletes only that student's volume. An operator can release idle sessions with `python -m course_lab reap --idle-hours 12`.
+
+The single-user `compose.yaml` lab on port `54329` is separate. Set `COURSE_LAB_AUTOSTART=0` before opening a notebook to keep using that lab and skip the private project. Module 11 does not request a database.
+
+The private session image is also `postgres:19-bookworm`. A student whose session volume was created under PostgreSQL 18 will see the PostgreSQL 19 container fail to start; run `python -m course_lab leave` to delete that session volume, then reopen a notebook to create a fresh PostgreSQL 19 one (re-run the Module 2 migration afterward).
 
 ### Alternative Path: Native PostgreSQL 19 Installation
 If you run a local native PostgreSQL 19 server (PostgreSQL 18 is also accepted) instead of Docker:

@@ -1,9 +1,10 @@
 # Hosted Labs: Architecture, Execution Modes, and Responsibilities
 
-> **Important:** This guide describes an architecture recommendation, not an
-> implemented hosted platform. This repository provides a single-user local
-> development setup; it does not provision hosted learner environments,
-> authentication, or reset and persistence workflows.
+> **Important:** Authentication, per-learner routing, and a remote execution
+> sandbox are not implemented. Local notebooks can request and release a
+> private database: `course_lab.py` starts one Compose project per
+> operating-system user from `compose.learner.yaml`. That project is not a
+> hosted learner platform.
 
 ## What the course needs
 
@@ -106,16 +107,18 @@ configuration**, not production-ready or multi-user-ready. It currently has:
 - A PostgreSQL 19 data mount at `/var/lib/postgresql`, the image's volume target. Default `PGDATA` is `/var/lib/postgresql/19/docker`.
 
 Distinct Compose project names do not remove the fixed container-name and
-explicit-volume collisions or the risk of sharing the named volume; instances
-using the default host port also conflict. A future hosted template must remove
-or isolate explicit global names, avoid conflicting host ports, and separate
-learner storage and credentials. Do not point this mount at a volume that was
+explicit-volume collisions in `compose.yaml`. `compose.learner.yaml` is the
+per-student file: it has no `container_name` and no fixed volume name, and
+`course_lab.py` publishes a free `127.0.0.1` port in `54400–54499`. Instances
+of `compose.yaml` that keep the default host port still conflict with each
+other. A hosted template must still add authentication, routing, and a
+sandbox; this local broker does not. Do not point this mount at a volume that was
 initialized under `/var/lib/postgresql/data` without a backup and a reviewed
 migration.
 
-These are outstanding implementation requirements, not changes made by this
-documentation. Do not move or reinitialize an existing volume, or point a new
-image at an old data directory, without a backup and a reviewed migration.
+Authentication, routing, and a remote sandbox remain outstanding. Do not move
+or reinitialize an existing volume, or point a new image at an old data
+directory, without a backup and a reviewed migration.
 
 ## PostgreSQL version policy (November 22, 2026)
 

@@ -78,7 +78,7 @@ The primary laboratory uses `compose.yaml` with `postgres:19-bookworm` (and supp
 - **Normal Shutdown vs. Destructive Reset:**
   - `docker compose stop` / `docker compose start`: Stops and restarts the server process while preserving `goliath_pgdata`.
   - `docker compose down -v`: Destroys the container **and** deletes `goliath_pgdata` (triggering `/docker-entrypoint-initdb.d/*.sql` on the next `docker compose up -d`).
-- **Notebook Boundary:** `01_postgresql_environment.py` inspects the environment and connects to it; rerunning notebook cells never launches containers or deletes volumes behind the scenes.
+- **Notebook boundary:** Opening a course notebook requests this operating-system user's private lab database through `course_lab.attach()`. Later modules reuse it. **Leave the lab** deletes that database. Rerunning lesson cells does not create or delete it. Set `COURSE_LAB_AUTOSTART=0` to keep using the single-user `compose.yaml` lab instead.
 
 ### 1.3 Understand database namespaces
 A PostgreSQL server cluster manages one or more **databases**, and each database contains multiple **schemas** (namespaces):

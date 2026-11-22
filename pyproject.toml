@@ -19,6 +19,7 @@ dependencies = [
 
 [tool.pytest.ini_options]
 testpaths = [
+    "tests",
     "3 - PostgreSQL SQL & Transactions",
 ]
 python_files = ["test_*.py"]
